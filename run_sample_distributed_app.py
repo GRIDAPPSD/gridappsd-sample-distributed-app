@@ -1,15 +1,19 @@
+import cim.data_profile as cim
 import json
 import logging
 import os
 import sys
 import time
+
 from pathlib import Path
 
 from gridappsd.field_interface.agents import CoordinatingAgent, FeederAgent, SwitchAreaAgent, SecondaryAreaAgent
 from gridappsd.field_interface.context import ContextManager
 from gridappsd.field_interface.interfaces import MessageBusDefinition, DeviceFieldInterface
 
+
 import auth_context
+from cim.models.distributed_model import DistributedModel
 
 logging.getLogger('stomp.py').setLevel(logging.ERROR)
 
@@ -28,6 +32,7 @@ class SampleFeederAgent(FeederAgent):
                  feeder_dict=None, simulation_id=None):
         super(SampleFeederAgent, self).__init__(upstream_message_bus_def, downstream_message_bus_def,
                                                 feeder_dict, simulation_id)
+        
     #TODO remove first four
     def on_measurement(self, peer, sender, bus, topic, headers, message):
         with open("feeder.txt", "a") as fp:
@@ -54,6 +59,8 @@ class SampleSecondaryAreaAgent(SecondaryAreaAgent):
                  secondary_area_dict=None, simulation_id=None):
         super(SampleSecondaryAreaAgent, self).__init__(upstream_message_bus_def, downstream_message_bus_def,
                                                        secondary_area_dict, simulation_id)
+        
+        
 
     def on_measurement(self, peer, sender, bus, topic, headers, message):
         with open("secondary.txt", "a") as fp:
@@ -108,7 +115,10 @@ def _main():
     #TODO: create access control for agents for different layers
     feeder_agent = SampleFeederAgent(system_message_bus_def, feeder_message_bus_def, feeder, simulation_id)
     coordinating_agent.spawn_distributed_agent(feeder_agent)
-
+    
+    # Get all the attributes of the equipments in the feder area from the model 
+    #attr_dict1 = feeder_agent.feeder_area.get_all_attributes(cim.PowerTransformer)
+    
     # create switch area distributed agents
     switch_areas = context['data']['switch_areas']
     for sw_index, switch_area in enumerate(switch_areas):
@@ -119,6 +129,11 @@ def _main():
                                                   switch_area,
                                                   simulation_id)
         coordinating_agent.spawn_distributed_agent(switch_area_agent)
+        
+        # Get all the attributes of the equipments in the switch area from the model 
+        attr_dict2 = switch_area_agent.switch_area.get_all_attributes(cim.LinearShuntCompensator)
+        attr_dict3 = switch_area_agent.switch_area.get_all_attributes(cim.ACLineSegment)
+      
 
         # create secondary area distributed agents
         for sec_index, secondary_area in enumerate(switch_area['secondary_areas']):
@@ -129,6 +144,10 @@ def _main():
                                                             simulation_id)
             if len(secondary_area_agent.addressable_equipments) > 1:
                 coordinating_agent.spawn_distributed_agent(secondary_area_agent)
+                
+                # Get all the attributes of the equipments in the switch area from the model 
+                attr_dict4 = secondary_area_agent.secondary_area.get_all_attributes(cim.EnergyConsumerPhase)
+
     '''
     # Publish device data
     device = DeviceFieldInterface(
