@@ -37,7 +37,7 @@ class SampleFeederAgent(FeederAgent):
     def on_measurement(self, peer, sender, bus, topic, headers, message):
         with open("feeder.txt", "a") as fp:
             fp.write(json.dumps(message))
-        print(message)
+        #print(message)
 
 
 class SampleSwitchAreaAgent(SwitchAreaAgent):
@@ -50,7 +50,7 @@ class SampleSwitchAreaAgent(SwitchAreaAgent):
     def on_measurement(self, peer, sender, bus, topic, headers, message):
         with open("switch_area.txt", "a") as fp:
             fp.write(json.dumps(message))
-        print(message)
+        #print(message)
 
 
 class SampleSecondaryAreaAgent(SecondaryAreaAgent):
@@ -68,14 +68,14 @@ class SampleSecondaryAreaAgent(SecondaryAreaAgent):
                 print("Woot found it!")
                 sys.exit()
             fp.write(json.dumps(message))
-        print(message)
+        #print(message)
 
 
 def overwrite_parameters(yaml_path: str, feeder_id: str) -> MessageBusDefinition:
     bus_def = MessageBusDefinition.load(yaml_path)
     id_split = bus_def.id.split('.')
     if len(id_split) > 1:
-        bus_def.id = feeder_id + '.'.join(id_split[1:])
+        bus_def.id = feeder_id + '.' +'.'.join(id_split[1:])
     else:
         bus_def.id = feeder_id
     address = os.environ.get('GRIDAPPSD_ADDRESS')
@@ -116,8 +116,10 @@ def _main():
     feeder_agent = SampleFeederAgent(system_message_bus_def, feeder_message_bus_def, feeder, simulation_id)
     coordinating_agent.spawn_distributed_agent(feeder_agent)
     
+    
     # Get all the attributes of the equipments in the feder area from the model 
-    #attr_dict1 = feeder_agent.feeder_area.get_all_attributes(cim.PowerTransformer)
+    #TODO: Uncomment when feeder attributed query working in gridappsd
+    #print(feeder_agent.feeder_area.get_all_attributes(cim.PowerTransformer))
     
     # create switch area distributed agents
     switch_areas = context['data']['switch_areas']
@@ -131,9 +133,15 @@ def _main():
         coordinating_agent.spawn_distributed_agent(switch_area_agent)
         
         # Get all the attributes of the equipments in the switch area from the model 
-        attr_dict2 = switch_area_agent.switch_area.get_all_attributes(cim.LinearShuntCompensator)
-        attr_dict3 = switch_area_agent.switch_area.get_all_attributes(cim.ACLineSegment)
-      
+        
+        attributes = switch_area_agent.switch_area.get_all_attributes(cim.LinearShuntCompensator)
+        if attributes is not None:
+            print('Printing properties for switch area LinearShuntCompensator')
+            print(attributes)
+        attributes = switch_area_agent.switch_area.get_all_attributes(cim.ACLineSegment)
+        if attributes is not None:
+            print('Printing properties for switch area ACLineSegment')
+            print(attributes)
 
         # create secondary area distributed agents
         for sec_index, secondary_area in enumerate(switch_area['secondary_areas']):
@@ -142,11 +150,14 @@ def _main():
                                                             secondary_area_message_bus_def,
                                                             secondary_area,
                                                             simulation_id)
-            if len(secondary_area_agent.addressable_equipments) > 1:
+            if len(secondary_area_agent.secondary_area.addressable_equipment) > 1:
                 coordinating_agent.spawn_distributed_agent(secondary_area_agent)
                 
                 # Get all the attributes of the equipments in the switch area from the model 
-                attr_dict4 = secondary_area_agent.secondary_area.get_all_attributes(cim.EnergyConsumerPhase)
+                attributes = secondary_area_agent.secondary_area.get_all_attributes(cim.EnergyConsumerPhase)
+                if attributes is not None:
+                    print('Printing properties for secondary area EnergyConsumerPhase')
+                    print(attributes)
 
     '''
     # Publish device data
