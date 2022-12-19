@@ -64,13 +64,9 @@ class SampleSecondaryAreaAgent(SecondaryAreaAgent):
         print(message)
 
 
-def overwrite_parameters(yaml_path: str, feeder_id: str) -> MessageBusDefinition:
-    bus_def = MessageBusDefinition.load(yaml_path)
-    id_split = bus_def.id.split('.')
-    if len(id_split) > 1:
-        bus_def.id = feeder_id + '.'.join(id_split[1:])
-    else:
-        bus_def.id = feeder_id
+def overwrite_parameters(area_id: str, feeder_id: str) -> MessageBusDefinition:
+    bus_def = MessageBusDefinition.load("config_files_simulated/system-message-bus.yml")
+    bus_def.id = feeder_id + '_' + area_id
     address = os.environ.get('GRIDAPPSD_ADDRESS')
     port = os.environ.get('GRIDAPPSD_PORT')
     if not address or not port:
@@ -94,7 +90,7 @@ def _main():
     feeder_id = feeder_path.read_text().strip()
     simulation_id = simulation_id_path.read_text().strip()
 
-    system_message_bus_def = overwrite_parameters("config_files_simulated/system-message-bus.yml", feeder_id)
+    system_message_bus_def = overwrite_parameters("", feeder_id)
 
     #TODO: add dictionary of other message bus definitions or have a functions call
     coordinating_agent = SampleCoordinatingAgent(feeder_id, system_message_bus_def)
@@ -109,10 +105,12 @@ def _main():
     feeder_agent = SampleFeederAgent(system_message_bus_def, feeder_message_bus_def, feeder, simulation_id)
     coordinating_agent.spawn_distributed_agent(feeder_agent)
 
-    # create switch area distributed agents
+        # create switch area distributed agents
     switch_areas = context['data']['switch_areas']
+    print(switch_areas)
+    exit()
     for sw_index, switch_area in enumerate(switch_areas):
-        switch_area_message_bus_def = overwrite_parameters(f"config_files_simulated/switch_area_message_bus_{sw_index}.yml", feeder_id)
+        switch_area_message_bus_def = overwrite_parameters(f"{sw_index}", feeder_id)
         print("Creating switch area agent " + str(switch_area))
         switch_area_agent = SampleSwitchAreaAgent(feeder_message_bus_def,
                                                   switch_area_message_bus_def,
@@ -122,7 +120,7 @@ def _main():
 
         # create secondary area distributed agents
         for sec_index, secondary_area in enumerate(switch_area['secondary_areas']):
-            secondary_area_message_bus_def = overwrite_parameters(f"config_files_simulated/secondary_area_message_bus_{sw_index}_{sec_index}.yml", feeder_id)
+            secondary_area_message_bus_def = overwrite_parameters(f"{sw_index}.{sec_index}", feeder_id)
             secondary_area_agent = SampleSecondaryAreaAgent(switch_area_message_bus_def,
                                                             secondary_area_message_bus_def,
                                                             secondary_area,

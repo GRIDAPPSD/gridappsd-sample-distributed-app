@@ -34,14 +34,21 @@ class SimulationClass(object):
         # Attributes to publish difference measurements
         # self.diff = DifferenceBuilder(simulation_id)
 
+    def getFeederID(self):
+        return self._feeder_mrid
+    
+    def getSimulationID(self):
+        return self._simulation.simulation_id
+    
     def onStart(self, sim):
         # Use extra methods to subscribe to other topics, such as simulation logs
         print(f"The simulation has started with id : {self._simulation.simulation_id}")
 
     def onMeasurment(self, sim, timestamp, measurements):
+        tm = timestamp
         # print(f"A measurement was taken with timestamp : {timestamp}")
         # Print the switch status just once
-        switch_data = self._switch_df[self._switch_df['eqid'] == '_6C1FDA90-1F4E-4716-BC90-1CCB59A6D5A9']
+        # switch_data = self._switch_df[self._switch_df['eqid'] == '_6C1FDA90-1F4E-4716-BC90-1CCB59A6D5A9']
         # print(switch_data)
         # for k in switch_data.index:
         #     measid = switch_data['measid'][k]

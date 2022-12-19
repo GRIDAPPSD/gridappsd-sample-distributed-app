@@ -19,9 +19,8 @@ class SampleFeederAgent(FeederAgent):
                                                 feeder_dict, simulation_id)
     #TODO remove first four
     def on_measurement(self, peer, sender, bus, topic, headers, message):
-        with open("feeder.txt", "a") as fp:
+        with open("feeder.json", "w") as fp:
             fp.write(json.dumps(message))
-        print(message)
 
 
 class SampleSwitchAreaAgent(SwitchAreaAgent):
@@ -32,10 +31,8 @@ class SampleSwitchAreaAgent(SwitchAreaAgent):
                                                     switch_area_dict, simulation_id)
 
     def on_measurement(self, peer, sender, bus, topic, headers, message):
-        print('Switch Area on measurment')
-        with open("switch_area.txt", "a") as fp:
+        with open("switch_area.json", "w") as fp:
             fp.write(json.dumps(message))
-        print(message)
 
 
 class SampleSecondaryAreaAgent(SecondaryAreaAgent):
@@ -46,25 +43,21 @@ class SampleSecondaryAreaAgent(SecondaryAreaAgent):
                                                        secondary_area_dict, simulation_id)
 
     def on_measurement(self, peer, sender, bus, topic, headers, message):
-        print('Secondary Area on measurment')
-        with open("secondary.txt", "a") as fp:
-            if "_4c491539-dfc1-4fda-9841-3bf10348e2fa" in json.dumps(message):
-                print("Woot found it!")
-                sys.exit()
+        with open("secondary.json", "w") as fp:
             fp.write(json.dumps(message))
-        print(message)
         
-def overwrite_parameters(yaml_path: str, feeder_id: str) -> MessageBusDefinition:
-    bus_def = MessageBusDefinition.load(yaml_path)
-    id_split = bus_def.id.split('.')
-    if len(id_split) > 1:
-        bus_def.id = feeder_id + '.'.join(id_split[1:])
-    else:
+def overwrite_parameters(feeder_id: str, area_id: str = '') -> MessageBusDefinition:
+    bus_def = MessageBusDefinition.load("../config_files_simulated/system-message-bus.yml")
+    if not area_id:
         bus_def.id = feeder_id
+    else:
+        bus_def.id = feeder_id + '.' + area_id
     address = os.environ.get('GRIDAPPSD_ADDRESS')
     port = os.environ.get('GRIDAPPSD_PORT')
     if not address or not port:
         raise ValueError("import auth_context or set environment up before this statement.")
 
     bus_def.conneciton_args['GRIDAPPSD_ADDRESS'] = f"tcp://{address}:{port}"
+    bus_def.conneciton_args['GRIDAPPSD_USER'] = os.environ.get('GRIDAPPSD_USER')
+    bus_def.conneciton_args['GRIDAPPSD_PASSWORD'] = os.environ.get('GRIDAPPSD_PASSWORD')
     return bus_def
