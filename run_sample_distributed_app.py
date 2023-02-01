@@ -1,10 +1,12 @@
 import auth_context
 import importlib
+
 import json
 import logging
 import os
 import sys
 import time
+
 
 from cimlab.data_profile import CIM_PROFILE
 
@@ -35,6 +37,7 @@ class SampleFeederAgent(FeederAgent):
                  cim_profile=CIM_PROFILE, feeder_dict=None, simulation_id=None):
         super(SampleFeederAgent, self).__init__(upstream_message_bus_def, downstream_message_bus_def,
                                                 cim_profile, feeder_dict, simulation_id)
+
         
     #TODO remove first four
     def on_measurement(self, peer, sender, bus, topic, headers, message):
@@ -62,7 +65,7 @@ class SampleSecondaryAreaAgent(SecondaryAreaAgent):
                  cim_profile = CIM_PROFILE, secondary_area_dict=None, simulation_id=None):
         super(SampleSecondaryAreaAgent, self).__init__(upstream_message_bus_def, downstream_message_bus_def,
                                                        cim_profile, secondary_area_dict, simulation_id)
-        
+
         
 
     def on_measurement(self, peer, sender, bus, topic, headers, message):
@@ -71,7 +74,7 @@ class SampleSecondaryAreaAgent(SecondaryAreaAgent):
                 print("Woot found it!")
                 sys.exit()
             fp.write(json.dumps(message))
-        print(message)
+        #print(message)
 
 
 def overwrite_parameters(yaml_path: str, feeder_id: str) -> MessageBusDefinition:
