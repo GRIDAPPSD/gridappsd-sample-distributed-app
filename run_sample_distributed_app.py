@@ -1,20 +1,27 @@
+import auth_context
+import importlib
 import json
 import logging
 import os
 import sys
 import time
+
+from cimlab.data_profile import CIM_PROFILE
+
 from pathlib import Path
 
 from gridappsd.field_interface.agents import CoordinatingAgent, FeederAgent, SwitchAreaAgent, SecondaryAreaAgent
 from gridappsd.field_interface.context import ContextManager
-from gridappsd.field_interface.interfaces import MessageBusDefinition, DeviceFieldInterface
+from gridappsd.field_interface.interfaces import MessageBusDefinition
 
-import auth_context
 
 logging.getLogger('stomp.py').setLevel(logging.ERROR)
 
 _log = logging.getLogger(__name__)
 
+
+cim_profile = CIM_PROFILE.RC4_2021.value
+cim = importlib.import_module('cimlab.data_profile.' + cim_profile)
 
 class SampleCoordinatingAgent(CoordinatingAgent):
 
@@ -25,35 +32,38 @@ class SampleCoordinatingAgent(CoordinatingAgent):
 class SampleFeederAgent(FeederAgent):
 
     def __init__(self, upstream_message_bus_def: MessageBusDefinition, downstream_message_bus_def: MessageBusDefinition,
-                 feeder_dict=None, simulation_id=None):
+                 cim_profile=CIM_PROFILE, feeder_dict=None, simulation_id=None):
         super(SampleFeederAgent, self).__init__(upstream_message_bus_def, downstream_message_bus_def,
-                                                feeder_dict, simulation_id)
+                                                cim_profile, feeder_dict, simulation_id)
+        
     #TODO remove first four
     def on_measurement(self, peer, sender, bus, topic, headers, message):
         with open("feeder.txt", "a") as fp:
             fp.write(json.dumps(message))
-        print(message)
+        #print(message)
 
 
 class SampleSwitchAreaAgent(SwitchAreaAgent):
 
     def __init__(self, upstream_message_bus_def: MessageBusDefinition, downstream_message_bus_def: MessageBusDefinition,
-                 switch_area_dict=None, simulation_id=None):
+                 cim_profile = CIM_PROFILE, switch_area_dict=None, simulation_id=None):
         super(SampleSwitchAreaAgent, self).__init__(upstream_message_bus_def, downstream_message_bus_def,
-                                                    switch_area_dict, simulation_id)
+                                                    cim_profile, switch_area_dict, simulation_id)
 
     def on_measurement(self, peer, sender, bus, topic, headers, message):
         with open("switch_area.txt", "a") as fp:
             fp.write(json.dumps(message))
-        print(message)
+        #print(message)
 
 
 class SampleSecondaryAreaAgent(SecondaryAreaAgent):
 
     def __init__(self, upstream_message_bus_def: MessageBusDefinition, downstream_message_bus_def: MessageBusDefinition,
-                 secondary_area_dict=None, simulation_id=None):
+                 cim_profile = CIM_PROFILE, secondary_area_dict=None, simulation_id=None):
         super(SampleSecondaryAreaAgent, self).__init__(upstream_message_bus_def, downstream_message_bus_def,
-                                                       secondary_area_dict, simulation_id)
+                                                       cim_profile, secondary_area_dict, simulation_id)
+        
+        
 
     def on_measurement(self, peer, sender, bus, topic, headers, message):
         with open("secondary.txt", "a") as fp:
@@ -68,7 +78,7 @@ def overwrite_parameters(yaml_path: str, feeder_id: str) -> MessageBusDefinition
     bus_def = MessageBusDefinition.load(yaml_path)
     id_split = bus_def.id.split('.')
     if len(id_split) > 1:
-        bus_def.id = feeder_id + '.'.join(id_split[1:])
+        bus_def.id = feeder_id + '.' +'.'.join(id_split[1:])
     else:
         bus_def.id = feeder_id
     address = os.environ.get('GRIDAPPSD_ADDRESS')
@@ -106,9 +116,14 @@ def _main():
     feeder = context['data']
 
     #TODO: create access control for agents for different layers
-    feeder_agent = SampleFeederAgent(system_message_bus_def, feeder_message_bus_def, feeder, simulation_id)
+    feeder_agent = SampleFeederAgent(system_message_bus_def, feeder_message_bus_def, cim_profile, feeder, simulation_id)
     coordinating_agent.spawn_distributed_agent(feeder_agent)
-
+    
+    
+    # Get all the attributes of the equipments in the feder area from the model 
+    #TODO: Uncomment when feeder attributed query working in gridappsd
+    #print(feeder_agent.feeder_area.get_all_attributes(cim.PowerTransformer))
+    
     # create switch area distributed agents
     switch_areas = context['data']['switch_areas']
     for sw_index, switch_area in enumerate(switch_areas):
@@ -116,19 +131,40 @@ def _main():
         print("Creating switch area agent " + str(switch_area))
         switch_area_agent = SampleSwitchAreaAgent(feeder_message_bus_def,
                                                   switch_area_message_bus_def,
+                                                  cim_profile,
                                                   switch_area,
                                                   simulation_id)
         coordinating_agent.spawn_distributed_agent(switch_area_agent)
+        
+        # Get all the attributes of the equipments in the switch area from the model 
+        
+        attributes = switch_area_agent.switch_area.get_all_attributes(cim.LinearShuntCompensator)
+        if attributes is not None:
+            print('Printing properties for switch area LinearShuntCompensator')
+            print(attributes)
+        attributes = switch_area_agent.switch_area.get_all_attributes(cim.ACLineSegment)
+        if attributes is not None:
+            print('Printing properties for switch area ACLineSegment')
+            print(attributes)
 
         # create secondary area distributed agents
         for sec_index, secondary_area in enumerate(switch_area['secondary_areas']):
             secondary_area_message_bus_def = overwrite_parameters(f"config_files_simulated/secondary_area_message_bus_{sw_index}_{sec_index}.yml", feeder_id)
+            print("Creating secondary area agent " + str(switch_area))
             secondary_area_agent = SampleSecondaryAreaAgent(switch_area_message_bus_def,
                                                             secondary_area_message_bus_def,
+                                                            cim_profile,
                                                             secondary_area,
                                                             simulation_id)
-            if len(secondary_area_agent.addressable_equipments) > 1:
+            if len(secondary_area_agent.secondary_area.addressable_equipment) > 1:
                 coordinating_agent.spawn_distributed_agent(secondary_area_agent)
+                
+                # Get all the attributes of the equipments in the switch area from the model 
+                attributes = secondary_area_agent.secondary_area.get_all_attributes(cim.EnergyConsumerPhase)
+                if attributes is not None:
+                    print('Printing properties for secondary area EnergyConsumerPhase')
+                    print(attributes)
+
     '''
     # Publish device data
     device = DeviceFieldInterface(
