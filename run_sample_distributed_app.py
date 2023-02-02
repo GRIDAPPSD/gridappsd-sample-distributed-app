@@ -6,24 +6,28 @@ import logging
 import os
 import sys
 import time
+from typing import Dict
 
 
 from cimlab.data_profile import CIM_PROFILE
 
 from pathlib import Path
 
+import gridappsd.field_interface.agents.agents as agents_mod
 from gridappsd.field_interface.agents import CoordinatingAgent, FeederAgent, SwitchAreaAgent, SecondaryAreaAgent
 from gridappsd.field_interface.context import ContextManager
 from gridappsd.field_interface.interfaces import MessageBusDefinition
 
+cim_profile = CIM_PROFILE.RC4_2021.value
+
+agents_mod.set_cim_profile(cim_profile)
+
+cim = agents_mod.cim
 
 logging.getLogger('stomp.py').setLevel(logging.ERROR)
 
 _log = logging.getLogger(__name__)
 
-
-cim_profile = CIM_PROFILE.RC4_2021.value
-cim = importlib.import_module('cimlab.data_profile.' + cim_profile)
 
 class SampleCoordinatingAgent(CoordinatingAgent):
 
@@ -34,9 +38,9 @@ class SampleCoordinatingAgent(CoordinatingAgent):
 class SampleFeederAgent(FeederAgent):
 
     def __init__(self, upstream_message_bus_def: MessageBusDefinition, downstream_message_bus_def: MessageBusDefinition,
-                 cim_profile=CIM_PROFILE, feeder_dict=None, simulation_id=None):
+                 feeder_dict: Dict = None, simulation_id: str = None):
         super(SampleFeederAgent, self).__init__(upstream_message_bus_def, downstream_message_bus_def,
-                                                cim_profile, feeder_dict, simulation_id)
+                                                feeder_dict, simulation_id)
 
         
     #TODO remove first four
@@ -49,9 +53,9 @@ class SampleFeederAgent(FeederAgent):
 class SampleSwitchAreaAgent(SwitchAreaAgent):
 
     def __init__(self, upstream_message_bus_def: MessageBusDefinition, downstream_message_bus_def: MessageBusDefinition,
-                 cim_profile = CIM_PROFILE, switch_area_dict=None, simulation_id=None):
+                 switch_area_dict: Dict = None, simulation_id: str = None):
         super(SampleSwitchAreaAgent, self).__init__(upstream_message_bus_def, downstream_message_bus_def,
-                                                    cim_profile, switch_area_dict, simulation_id)
+                                                    switch_area_dict, simulation_id)
 
     def on_measurement(self, peer, sender, bus, topic, headers, message):
         with open("switch_area.txt", "a") as fp:
@@ -62,9 +66,9 @@ class SampleSwitchAreaAgent(SwitchAreaAgent):
 class SampleSecondaryAreaAgent(SecondaryAreaAgent):
 
     def __init__(self, upstream_message_bus_def: MessageBusDefinition, downstream_message_bus_def: MessageBusDefinition,
-                 cim_profile = CIM_PROFILE, secondary_area_dict=None, simulation_id=None):
+                 secondary_area_dict: Dict = None, simulation_id: str = None):
         super(SampleSecondaryAreaAgent, self).__init__(upstream_message_bus_def, downstream_message_bus_def,
-                                                       cim_profile, secondary_area_dict, simulation_id)
+                                                       secondary_area_dict, simulation_id)
 
         
 
@@ -119,7 +123,7 @@ def _main():
     feeder = context['data']
 
     #TODO: create access control for agents for different layers
-    feeder_agent = SampleFeederAgent(system_message_bus_def, feeder_message_bus_def, cim_profile, feeder, simulation_id)
+    feeder_agent = SampleFeederAgent(system_message_bus_def, feeder_message_bus_def, feeder, simulation_id)
     coordinating_agent.spawn_distributed_agent(feeder_agent)
     
     
@@ -134,7 +138,6 @@ def _main():
         print("Creating switch area agent " + str(switch_area))
         switch_area_agent = SampleSwitchAreaAgent(feeder_message_bus_def,
                                                   switch_area_message_bus_def,
-                                                  cim_profile,
                                                   switch_area,
                                                   simulation_id)
         coordinating_agent.spawn_distributed_agent(switch_area_agent)
@@ -156,7 +159,6 @@ def _main():
             print("Creating secondary area agent " + str(switch_area))
             secondary_area_agent = SampleSecondaryAreaAgent(switch_area_message_bus_def,
                                                             secondary_area_message_bus_def,
-                                                            cim_profile,
                                                             secondary_area,
                                                             simulation_id)
             if len(secondary_area_agent.secondary_area.addressable_equipment) > 1:
