@@ -1,19 +1,28 @@
-import cim.data_profile as cim
+import auth_context
+import importlib
+
 import json
 import logging
 import os
 import sys
 import time
+from typing import Dict
+
+
+from cimlab.data_profile import CIM_PROFILE
 
 from pathlib import Path
 
+import gridappsd.field_interface.agents.agents as agents_mod
 from gridappsd.field_interface.agents import CoordinatingAgent, FeederAgent, SwitchAreaAgent, SecondaryAreaAgent
 from gridappsd.field_interface.context import ContextManager
-from gridappsd.field_interface.interfaces import MessageBusDefinition, DeviceFieldInterface
+from gridappsd.field_interface.interfaces import MessageBusDefinition
 
+cim_profile = CIM_PROFILE.RC4_2021.value
 
-import auth_context
-from cim.models.distributed_model import DistributedModel
+agents_mod.set_cim_profile(cim_profile)
+
+cim = agents_mod.cim
 
 logging.getLogger('stomp.py').setLevel(logging.ERROR)
 
@@ -29,9 +38,10 @@ class SampleCoordinatingAgent(CoordinatingAgent):
 class SampleFeederAgent(FeederAgent):
 
     def __init__(self, upstream_message_bus_def: MessageBusDefinition, downstream_message_bus_def: MessageBusDefinition,
-                 feeder_dict=None, simulation_id=None):
+                 feeder_dict: Dict = None, simulation_id: str = None):
         super(SampleFeederAgent, self).__init__(upstream_message_bus_def, downstream_message_bus_def,
                                                 feeder_dict, simulation_id)
+
         
     #TODO remove first four
     def on_measurement(self, peer, sender, bus, topic, headers, message):
@@ -43,7 +53,7 @@ class SampleFeederAgent(FeederAgent):
 class SampleSwitchAreaAgent(SwitchAreaAgent):
 
     def __init__(self, upstream_message_bus_def: MessageBusDefinition, downstream_message_bus_def: MessageBusDefinition,
-                 switch_area_dict=None, simulation_id=None):
+                 switch_area_dict: Dict = None, simulation_id: str = None):
         super(SampleSwitchAreaAgent, self).__init__(upstream_message_bus_def, downstream_message_bus_def,
                                                     switch_area_dict, simulation_id)
 
@@ -56,10 +66,10 @@ class SampleSwitchAreaAgent(SwitchAreaAgent):
 class SampleSecondaryAreaAgent(SecondaryAreaAgent):
 
     def __init__(self, upstream_message_bus_def: MessageBusDefinition, downstream_message_bus_def: MessageBusDefinition,
-                 secondary_area_dict=None, simulation_id=None):
+                 secondary_area_dict: Dict = None, simulation_id: str = None):
         super(SampleSecondaryAreaAgent, self).__init__(upstream_message_bus_def, downstream_message_bus_def,
                                                        secondary_area_dict, simulation_id)
-        
+
         
 
     def on_measurement(self, peer, sender, bus, topic, headers, message):
@@ -146,6 +156,7 @@ def _main():
         # create secondary area distributed agents
         for sec_index, secondary_area in enumerate(switch_area['secondary_areas']):
             secondary_area_message_bus_def = overwrite_parameters(f"config_files_simulated/secondary_area_message_bus_{sw_index}_{sec_index}.yml", feeder_id)
+            print("Creating secondary area agent " + str(switch_area))
             secondary_area_agent = SampleSecondaryAreaAgent(switch_area_message_bus_def,
                                                             secondary_area_message_bus_def,
                                                             secondary_area,
