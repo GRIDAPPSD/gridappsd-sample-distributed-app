@@ -18,6 +18,8 @@ from gridappsd.field_interface.agents import CoordinatingAgent, FeederAgent, Swi
 from gridappsd.field_interface.context import ContextManager
 from gridappsd.field_interface.interfaces import MessageBusDefinition
 
+import sample_queries as example
+
 cim_profile = CIM_PROFILE.RC4_2021.value
 
 agents_mod.set_cim_profile(cim_profile)
@@ -30,6 +32,12 @@ logging.getLogger('stomp.py').setLevel(logging.ERROR)
 
 _log = logging.getLogger(__name__)
 
+os.environ['GRIDAPPSD_APPLICATION_ID'] = 'dist-sample-app'
+os.environ['GRIDAPPSD_APPLICATION_STATUS'] = 'STARTED'
+os.environ['GRIDAPPSD_USER'] = 'app_user'
+os.environ['GRIDAPPSD_PASSWORD'] = '1234App'
+os.environ['GRIDAPPSD_ADDRESS'] = 'localhost'
+os.environ['GRIDAPPSD_PORT'] = '61613'
 
 class SampleCoordinatingAgent(CoordinatingAgent):
 
@@ -136,7 +144,7 @@ def _main():
     switch_areas = context['data']['switch_areas']
     for sw_index, switch_area in enumerate(switch_areas):
         switch_area_message_bus_def = overwrite_parameters(f"config_files_simulated/switch_area_message_bus_{sw_index}.yml", feeder_id)
-        print("Creating switch area agent " + str(switch_area))
+        print("Creating switch area agent " + str(switch_area['message_bus_id']))
         switch_area_agent = SampleSwitchAreaAgent(feeder_message_bus_def,
                                                   switch_area_message_bus_def,
                                                   switch_area,
@@ -145,19 +153,22 @@ def _main():
         
         # Get all the attributes of the equipments in the switch area from the model 
         
-        attributes = switch_area_agent.switch_area.get_all_attributes(cim.LinearShuntCompensator)
-        if attributes is not None:
-            print('Printing properties for switch area LinearShuntCompensator')
-            print(attributes)
-        attributes = switch_area_agent.switch_area.get_all_attributes(cim.ACLineSegment)
-        if attributes is not None:
-            print('Printing properties for switch area ACLineSegment')
-            print(attributes)
+        # EXAMPLE 1 - Get phase, bus info about ACLineSegments
+        example.get_lines_buses(switch_area_agent.switch_area)
+        
+        # EXAMPLE 2 - Get all line impedance data
+        example.get_line_impedances(switch_area_agent.switch_area)
+        
+        # EXAMPLE 3 - Sort all line impedance by line phase:
+        example.sort_impedance_by_line(switch_area_agent.switch_area)
+        
+        # Example 4 - Sort all lines by impedance
+        example.sort_line_by_impedance(switch_area_agent.switch_area)
 
         # create secondary area distributed agents
         for sec_index, secondary_area in enumerate(switch_area['secondary_areas']):
             secondary_area_message_bus_def = overwrite_parameters(f"config_files_simulated/secondary_area_message_bus_{sw_index}_{sec_index}.yml", feeder_id)
-            print("Creating secondary area agent " + str(switch_area))
+            print("Creating secondary area agent " + str(switch_area['message_bus_id']))
             secondary_area_agent = SampleSecondaryAreaAgent(switch_area_message_bus_def,
                                                             secondary_area_message_bus_def,
                                                             secondary_area,
