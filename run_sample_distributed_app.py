@@ -60,7 +60,7 @@ class SampleSwitchAreaAgent(SwitchAreaAgent):
         super().__init__(upstream_message_bus_def, downstream_message_bus_def,
                                                     switch_area_dict, simulation_id)
 
-    def on_measurement(self, peer, sender, bus, topic, headers, message):
+    def on_measurement(self, headers: Dict, message):
         _log.debug(f"measurement: {self.__class__.__name__}.{headers.get('destination')}")
         with open("switch_area.txt", "a") as fp:
             fp.write(json.dumps(message))
@@ -76,7 +76,7 @@ class SampleSecondaryAreaAgent(SecondaryAreaAgent):
 
         
 
-    def on_measurement(self, peer, sender, bus, topic, headers, message):
+    def on_measurement(self, headers: Dict, message):
         _log.debug(f"measurement: {self.__class__.__name__}.{headers.get('destination')}")
         with open("secondary.txt", "a") as fp:
             fp.write(json.dumps(message))
