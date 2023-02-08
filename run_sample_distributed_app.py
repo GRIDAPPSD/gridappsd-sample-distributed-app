@@ -164,11 +164,21 @@ def _main():
         
         # Example 4 - Sort all lines by impedance
         example.sort_line_by_impedance(switch_area_agent.switch_area)
+        
+        # Example 5 - Get TransformerTank impedances
+        example.get_tank_impedances(switch_area_agent.switch_area)
+        
+        # Example 6 - Get inverter buses and phases
+        example.get_inverter_buses(switch_area_agent.switch_area)
+        
+        # Example 7 - Get load buses and phases
+        example.get_load_buses(switch_area_agent.switch_area)
+        
 
         # create secondary area distributed agents
         for sec_index, secondary_area in enumerate(switch_area['secondary_areas']):
             secondary_area_message_bus_def = overwrite_parameters(f"config_files_simulated/secondary_area_message_bus_{sw_index}_{sec_index}.yml", feeder_id)
-            print("Creating secondary area agent " + str(switch_area['message_bus_id']))
+            print("Creating secondary area agent " + str(secondary_area['message_bus_id']))
             secondary_area_agent = SampleSecondaryAreaAgent(switch_area_message_bus_def,
                                                             secondary_area_message_bus_def,
                                                             secondary_area,
@@ -176,11 +186,11 @@ def _main():
             if len(secondary_area_agent.secondary_area.addressable_equipment) > 1:
                 coordinating_agent.spawn_distributed_agent(secondary_area_agent)
                 
-                # Get all the attributes of the equipments in the switch area from the model 
-                attributes = secondary_area_agent.secondary_area.get_all_attributes(cim.EnergyConsumerPhase)
-                if attributes is not None:
-                    print('Printing properties for secondary area EnergyConsumerPhase')
-                    print(attributes)
+                 # Example 6 - Get inverter buses and phases
+                example.get_inverter_buses(secondary_area_agent.secondary_area)
+
+                # Example 7 - Get load buses and phases
+                example.get_load_buses(secondary_area_agent.secondary_area)
 
     '''
     # Publish device data

@@ -7,14 +7,15 @@ cim = agents_mod.cim
 # print line name, phase, and bus
 def get_lines_buses(network_area):
     print('\n \n EXAMPLE 1: GET ALL LINE PHASES AND BUSES')
-    network_area.get_all_attributes(cim.ACLineSegment)
-    network_area.get_all_attributes(cim.ACLineSegmentPhase)
-    network_area.get_all_attributes(cim.Terminal)
     if cim.ACLineSegment in network_area.typed_catalog:
+        network_area.get_all_attributes(cim.ACLineSegment)
+        network_area.get_all_attributes(cim.ACLineSegmentPhase)
+        network_area.get_all_attributes(cim.Terminal)
+        
         line_ids = list(network_area.typed_catalog[cim.ACLineSegment].keys())
         for line_id in line_ids:
             line = network_area.typed_catalog[cim.ACLineSegment][line_id]
-            print('line mrid: ',line_id)
+            print('\n line mrid: ',line_id)
             print('line name:', line.name)
             print('bus 1: ', line.Terminals[0].ConnectivityNode.name, line.Terminals[0].ConnectivityNode.mRID)
             print('bus 2: ', line.Terminals[1].ConnectivityNode.name, line.Terminals[1].ConnectivityNode.mRID)
@@ -27,25 +28,25 @@ def get_lines_buses(network_area):
 
 def get_line_impedances(network_area):
     print('\n \n EXAMPLE 2: GET ALL LINE IMPEDANCE ATTRIBUTES')
-    network_area.get_all_attributes(cim.ACLineSegment)
-    network_area.get_all_attributes(cim.ACLineSegmentPhase)
-    network_area.get_all_attributes(cim.PerLengthPhaseImpedance)
-    network_area.get_all_attributes(cim.PhaseImpedanceData)
+    if cim.ACLineSegment in network_area.typed_catalog:
+        network_area.get_all_attributes(cim.ACLineSegment)
+        network_area.get_all_attributes(cim.ACLineSegmentPhase)
+        network_area.get_all_attributes(cim.PerLengthPhaseImpedance)
+        network_area.get_all_attributes(cim.PhaseImpedanceData)
 
-    network_area.get_all_attributes(cim.WireSpacingInfo)
-    network_area.get_all_attributes(cim.WirePosition)
-    network_area.get_all_attributes(cim.OverheadWireInfo)
-    network_area.get_all_attributes(cim.ConcentricNeutralCableInfo)
-    network_area.get_all_attributes(cim.TapeShieldCableInfo)
-    network_area.get_all_attributes(cim.Terminal)
+        network_area.get_all_attributes(cim.WireSpacingInfo)
+        network_area.get_all_attributes(cim.WirePosition)
+        network_area.get_all_attributes(cim.OverheadWireInfo)
+        network_area.get_all_attributes(cim.ConcentricNeutralCableInfo)
+        network_area.get_all_attributes(cim.TapeShieldCableInfo)
+        network_area.get_all_attributes(cim.Terminal)
 
 # sort data by line phase
 def sort_impedance_by_line(network_area):
     print('\n \n EXAMPLE 3: SORT IMPEDANCE BY LINE PHASE')
     if cim.ACLineSegment in network_area.typed_catalog:
         for line in network_area.typed_catalog[cim.ACLineSegment].values():
-            print()
-            print('line mrid: ', line.mRID)
+            print('\n line mrid: ', line.mRID)
             print('line name:', line.name)
             print('bus 1: ', line.Terminals[0].ConnectivityNode.mRID)
             print('bus 2: ', line.Terminals[1].ConnectivityNode.mRID)
@@ -74,8 +75,7 @@ def sort_line_by_impedance(network_area):
     #OverheadWireInfo
     if cim.OverheadWireInfo in network_area.typed_catalog:
         for oh_wire in network_area.typed_catalog[cim.OverheadWireInfo].values():
-            print()
-            print('name: ', oh_wire.name)
+            print('\n name: ', oh_wire.name)
             print('gmr: ', oh_wire.gmr)
             print('insulated:', oh_wire.insulated)
             for line_phs in oh_wire.ACLineSegmentPhases:
@@ -89,7 +89,6 @@ def sort_line_by_impedance(network_area):
     #TapeShieldCableInfo
     if cim.TapeShieldCableInfo in network_area.typed_catalog:
         for cable in network_area.typed_catalog[cim.TapeShieldCableInfo].values():
-            print()
             print('name: ', cable.name)
             print('gmr: ', cable.gmr)
             print('insulated:', cable.insulated)
@@ -105,7 +104,7 @@ def sort_line_by_impedance(network_area):
     #PerLengthPhaseImpedance
     if cim.PerLengthPhaseImpedance in network_area.typed_catalog:
         for impedance in network_area.typed_catalog[cim.PerLengthPhaseImpedance].values():
-            print('name:', impedance.name)
+            print('\n name:', impedance.name)
             for data in impedance.PhaseImpedanceData:
                     print('row:', data.row, 'col:', data.column, 'r:', data.r, 'x:', data.x, 'b:', data.b)
             for line in impedance.ACLineSegments:
@@ -116,4 +115,77 @@ def sort_line_by_impedance(network_area):
     else:
         print('no PerLengthPhaseImpedance objects in area')
 
+        
+# get transformertank data
+def get_tank_impedances(network_area):
+    print('EXAMPLE 5: GET TRANSFORMER TANK IMPEDANCES')
+    #OverheadWireInfo
+    if cim.TransformerTank in network_area.typed_catalog:
+        network_area.get_all_attributes(cim.TransformerTank)
+        network_area.get_all_attributes(cim.TransformerTankEnd)
+        network_area.get_all_attributes(cim.TransformerTankInfo)
+        network_area.get_all_attributes(cim.TransformerEndInfo)
+        network_area.get_all_attributes(cim.ShortCircuitTest)
+        network_area.get_all_attributes(cim.NoLoadTest)
+        network_area.get_all_attributes(cim.Terminal)
+        
+        for tank in network_area.typed_catalog[cim.TransformerTank].values():
+            print('\n name:', tank.name)
+            for end in tank.TransformerTankEnds:
+                print('end number:', end.endNumber)
+                node = end.Terminal.ConnectivityNode
+                print('bus: ', node.name, node.mRID)
+
+            for end_info in tank.TransformerTankInfo.TransformerEndInfos:
+
+                print('end number', end_info.endNumber)
+                print('rated voltage:', end_info.ratedU)
+                print('resistance:', end_info.r)
+                for no_load_test in end_info.EnergisedEndNoLoadTests:
+                    print('exciting current:', no_load_test.excitingCurrent)
+
+                for short_circuit_test in end_info.EnergisedEndShortCircuitTests:
+                    print('energisedEndStep:', short_circuit_test.energisedEndStep)
+                    print('groundedEndStep:', short_circuit_test.groundedEndStep)
+                    print('leakageImpedance:', short_circuit_test.leakageImpedance)
+
+                for short_circuit_test in end_info.GroundedEndShortCircuitTests:
+                    print('energisedEndStep:', short_circuit_test.energisedEndStep)
+                    print('groundedEndStep:', short_circuit_test.groundedEndStep)
+                    print('leakageImpedance:', short_circuit_test.leakageImpedance)
+        
+        
+# sort PowerElectronicsUnits
+def get_inverter_buses(network_area):
+    if cim.PowerElectronicsConnection in network_area.typed_catalog:
+        network_area.get_all_attributes(cim.PowerElectronicsConnection)
+        network_area.get_all_attributes(cim.PowerElectronicsConnectionPhase)
+        network_area.get_all_attributes(cim.Terminal)
+        print('\n \n EXAMPLE 6: GET ALL INVERTER PHASES AND BUSES')
+        for pec in network_area.typed_catalog[cim.PowerElectronicsConnection].values():
+            print('\n name: ', pec.name, pec.mRID)
+            print('p = ', pec.p, 'q = ', pec.q)
+            node1 = pec.Terminals[0].ConnectivityNode
+            print('bus: ', node1.name, node1.mRID)
+            for pec_phs in pec.PowerElectronicsConnectionPhases:
+                print('phase ', pec_phs.phase, ': ', pec_phs.mRID)
+            
+#sort EnergyConsumers
+def get_load_buses(network_area):
+    if cim.EnergyConsumer in network_area.typed_catalog:
+        network_area.get_all_attributes(cim.EnergyConsumer)
+        network_area.get_all_attributes(cim.EnergyConsumerPhase)
+        network_area.get_all_attributes(cim.Terminal)
+
+        print('\n \n EXAMPLE 7: GET ALL LOAD PHASES AND BUSES')
+
+        for load in network_area.typed_catalog[cim.EnergyConsumer].values():
+            print('name: ', load.name, load.mRID)
+            print('p = ', load.p, 'q = ', load.q)
+            node1 = load.Terminals[0].ConnectivityNode
+            print('bus: ', node1.name, node1.mRID)
+            for load_phs in load.EnergyConsumerPhase:
+                print('phases: ', load_phs.phase)
+                print('p = ', load_phs.p, 'q = ', load_phs.q)
+                
     
