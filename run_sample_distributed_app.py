@@ -32,13 +32,6 @@ logging.getLogger('stomp.py').setLevel(logging.ERROR)
 
 _log = logging.getLogger(__name__)
 
-os.environ['GRIDAPPSD_APPLICATION_ID'] = 'dist-sample-app'
-os.environ['GRIDAPPSD_APPLICATION_STATUS'] = 'STARTED'
-os.environ['GRIDAPPSD_USER'] = 'app_user'
-os.environ['GRIDAPPSD_PASSWORD'] = '1234App'
-os.environ['GRIDAPPSD_ADDRESS'] = 'localhost'
-os.environ['GRIDAPPSD_PORT'] = '61613'
-
 class SampleCoordinatingAgent(CoordinatingAgent):
 
     def __init__(self, feeder_id, system_message_bus_def, simulation_id=None):
