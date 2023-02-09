@@ -66,7 +66,7 @@ def main():
                                                   switch_area,
                                                   sim_class.getSimulationID())
         coordinating_agent.spawn_distributed_agent(switch_area_agent)
-
+    
         # create secondary area distributed agents
         for sec_index, secondary_area in enumerate(switch_area['secondary_areas']):
             secondary_area_message_bus_def = overwrite_parameters(sim_class.getFeederID(), f"{sw_index}.{sec_index}")
