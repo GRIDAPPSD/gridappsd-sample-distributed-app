@@ -188,4 +188,24 @@ def get_load_buses(network_area):
                 print('phases: ', load_phs.phase)
                 print('p = ', load_phs.p, 'q = ', load_phs.q)
                 
-    
+def get_power_transformers(network_area):
+    if cim.PowerTransformer in network_area.typed_catalog:
+        network_area.get_all_attributes(cim.PowerTransformer)
+        network_area.get_all_attributes(cim.PowerTransformerInfo)
+        network_area.get_all_attributes(cim.PowerTransformerEnd)
+        network_area.get_all_attributes(cim.TransformerMeshImpedance)
+        network_area.get_all_attributes(cim.TransformerCoreAdmittance)
+        network_area.get_all_attributes(cim.Terminal)
+
+        for xfmr in network_area.typed_catalog[cim.PowerTransformer].values():
+            print('\n name: ', xfmr.name, xfmr.mRID)
+            for end in xfmr.PowerTransformerEnd:
+                print('end number:', end.endNumber)
+                print('bus:', end.Terminal.ConnectivityNode.name)
+                print('connection:', end.connectionKind)
+                for mesh_imp in end.ToMeshImpedance:
+                    print('r:', mesh_imp.r)
+                    print('x:', mesh_imp.x)
+                if end.CoreAdmittance is not None:
+                    print('g:', end.CoreAdmittance.g)
+                    print('b:', end.CoreAdmittance.b)
