@@ -161,6 +161,8 @@ def get_inverter_buses(network_area):
         network_area.get_all_attributes(cim.PowerElectronicsConnection)
         network_area.get_all_attributes(cim.PowerElectronicsConnectionPhase)
         network_area.get_all_attributes(cim.Terminal)
+        network_area.get_all_attributes(cim.Analog)
+        
         print('\n \n EXAMPLE 6: GET ALL INVERTER PHASES AND BUSES')
         for pec in network_area.typed_catalog[cim.PowerElectronicsConnection].values():
             print('\n name: ', pec.name, pec.mRID)
@@ -169,6 +171,10 @@ def get_inverter_buses(network_area):
             print('bus: ', node1.name, node1.mRID)
             for pec_phs in pec.PowerElectronicsConnectionPhases:
                 print('phase ', pec_phs.phase, ': ', pec_phs.mRID)
+                
+            for meas in pec.Measurements:
+                print('Measurement: ', meas.name, meas.mRID)
+                print('type:', meas.measurementType, 'phases:', meas.phases)
             
 #sort EnergyConsumers
 def get_load_buses(network_area):
@@ -176,6 +182,7 @@ def get_load_buses(network_area):
         network_area.get_all_attributes(cim.EnergyConsumer)
         network_area.get_all_attributes(cim.EnergyConsumerPhase)
         network_area.get_all_attributes(cim.Terminal)
+        network_area.get_all_attributes(cim.Analog)
 
         print('\n \n EXAMPLE 7: GET ALL LOAD PHASES AND BUSES')
 
@@ -184,9 +191,15 @@ def get_load_buses(network_area):
             print('p = ', load.p, 'q = ', load.q)
             node1 = load.Terminals[0].ConnectivityNode
             print('bus: ', node1.name, node1.mRID)
+            
             for load_phs in load.EnergyConsumerPhase:
                 print('phases: ', load_phs.phase)
                 print('p = ', load_phs.p, 'q = ', load_phs.q)
+                
+            for meas in load.Measurements:
+                print('Measurement: ', meas.name, meas.mRID)
+                print('type:', meas.measurementType, 'phases:', meas.phases)
+                
                 
 def get_power_transformers(network_area):
     if cim.PowerTransformer in network_area.typed_catalog:
@@ -196,6 +209,9 @@ def get_power_transformers(network_area):
         network_area.get_all_attributes(cim.TransformerMeshImpedance)
         network_area.get_all_attributes(cim.TransformerCoreAdmittance)
         network_area.get_all_attributes(cim.Terminal)
+        network_area.get_all_attributes(cim.Analog)
+        network_area.get_all_attributes(cim.Discrete)
+        
 
         for xfmr in network_area.typed_catalog[cim.PowerTransformer].values():
             print('\n name: ', xfmr.name, xfmr.mRID)
@@ -203,9 +219,14 @@ def get_power_transformers(network_area):
                 print('end number:', end.endNumber)
                 print('bus:', end.Terminal.ConnectivityNode.name)
                 print('connection:', end.connectionKind)
+                print('voltage:', end.ratedU)
+
                 for mesh_imp in end.ToMeshImpedance:
                     print('r:', mesh_imp.r)
                     print('x:', mesh_imp.x)
                 if end.CoreAdmittance is not None:
                     print('g:', end.CoreAdmittance.g)
                     print('b:', end.CoreAdmittance.b)
+            for meas in xfmr.Measurements:
+                print('Measurement: ', meas.name, meas.mRID)
+                print('type:', meas.measurementType, 'phases:', meas.phases)
