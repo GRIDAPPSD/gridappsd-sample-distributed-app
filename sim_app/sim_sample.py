@@ -1,24 +1,39 @@
 import os
 
-os.environ['GRIDAPPSD_USER'] = 'system'
-os.environ['GRIDAPPSD_PASSWORD'] = 'manager'
-os.environ['GRIDAPPSD_ADDRESS'] = 'localhost'
+os.environ['GRIDAPPSD_USER'] = 'app-user'
+os.environ['GRIDAPPSD_PASSWORD'] = '1234App'
+os.environ['GRIDAPPSD_ADDRESS'] = 'gridappsd'
 os.environ['GRIDAPPSD_PORT'] = '61613'
+os.environ['GRIDAPPSD_APPLICATION_ID'] = 'dist-sample-app'
 
 import logging
-
-logging.getLogger('stomp.py').setLevel(logging.ERROR)
-_log = logging.getLogger(__name__)
 
 import sys
 import time
 from pathlib import Path
 
+import gridappsd.field_interface.agents.agents as agents_mod
+from gridappsd.field_interface.agents import CoordinatingAgent, FeederAgent, SwitchAreaAgent, SecondaryAreaAgent
+from gridappsd.field_interface.context import ContextManager
+from gridappsd.field_interface.interfaces import MessageBusDefinition
+
+from cimlab.data_profile import CIM_PROFILE
+cim_profile = CIM_PROFILE.RC4_2021.value
+agents_mod.set_cim_profile(cim_profile)
+cim = agents_mod.cim
+
 from agents import *
 from gridappsd import GridAPPSD
 from gridappsd import topics as t
-from gridappsd.simulation import Simulation
+from gridappsd.simulation import Simulation, SimulationConfig, PowerSystemConfig
 from sim_class import SimulationClass
+
+
+logging.basicConfig(level=logging.DEBUG)
+logging.getLogger('goss').setLevel(logging.INFO)
+logging.getLogger('stomp.py').setLevel(logging.INFO)
+
+_log = logging.getLogger(__name__)
 
 def onMessage(header, message):
     with open("all_bus.json", "w") as fp:
@@ -74,7 +89,7 @@ def main():
                                                             secondary_area_message_bus_def,
                                                             secondary_area,
                                                             sim_class.getSimulationID())
-            if len(secondary_area_agent.addressable_equipments) > 1:
+            if len(secondary_area_agent.secondary_area.addressable_equipment) > 1:
                 coordinating_agent.spawn_distributed_agent(secondary_area_agent)
 
     while not sim_class._finished:

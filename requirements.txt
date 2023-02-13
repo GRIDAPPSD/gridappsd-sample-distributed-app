@@ -4,5 +4,5 @@ pytz==2022.7
 stomp-py==6.0.0
 pandas
 numpy
-gridappsd-cim-profile==0.10.20230208223046a0
-gridappsd-python==2.7.20230208232960a0
+gridappsd-cim-lab==0.11.230209
+gridappsd-python==2.7.230209

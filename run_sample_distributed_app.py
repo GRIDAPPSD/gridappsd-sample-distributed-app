@@ -1,78 +1,100 @@
+import auth_context
+import importlib
+
 import json
 import logging
 import os
 import sys
 import time
+from typing import Dict
+
+
+from cimlab.data_profile import CIM_PROFILE
+
 from pathlib import Path
 
+import gridappsd.field_interface.agents.agents as agents_mod
 from gridappsd.field_interface.agents import CoordinatingAgent, FeederAgent, SwitchAreaAgent, SecondaryAreaAgent
 from gridappsd.field_interface.context import ContextManager
-from gridappsd.field_interface.interfaces import MessageBusDefinition, DeviceFieldInterface
+from gridappsd.field_interface.interfaces import MessageBusDefinition
 
-import auth_context
+cim_profile = CIM_PROFILE.RC4_2021.value
 
+agents_mod.set_cim_profile(cim_profile)
+
+cim = agents_mod.cim
+
+logging.basicConfig(level=logging.DEBUG)
+logging.getLogger('goss').setLevel(logging.ERROR)
 logging.getLogger('stomp.py').setLevel(logging.ERROR)
 
 _log = logging.getLogger(__name__)
 
-
 class SampleCoordinatingAgent(CoordinatingAgent):
 
     def __init__(self, feeder_id, system_message_bus_def, simulation_id=None):
-        super(SampleCoordinatingAgent, self).__init__(feeder_id, system_message_bus_def, simulation_id)
+        super().__init__(feeder_id, system_message_bus_def, simulation_id)
 
 
 class SampleFeederAgent(FeederAgent):
 
     def __init__(self, upstream_message_bus_def: MessageBusDefinition, downstream_message_bus_def: MessageBusDefinition,
-                 feeder_dict=None, simulation_id=None):
-        super(SampleFeederAgent, self).__init__(upstream_message_bus_def, downstream_message_bus_def,
+                 feeder_dict: Dict = None, simulation_id: str = None):
+        super().__init__(upstream_message_bus_def, downstream_message_bus_def,
                                                 feeder_dict, simulation_id)
+
+        
     #TODO remove first four
-    def on_measurement(self, peer, sender, bus, topic, headers, message):
+    def on_measurement(self, headers: Dict, message) -> None:
+        _log.debug(f"measurement: {self.__class__.__name__}.{headers.get('destination')}")
         with open("feeder.txt", "a") as fp:
             fp.write(json.dumps(message))
-        print(message)
+        #print(message)
 
 
 class SampleSwitchAreaAgent(SwitchAreaAgent):
 
     def __init__(self, upstream_message_bus_def: MessageBusDefinition, downstream_message_bus_def: MessageBusDefinition,
-                 switch_area_dict=None, simulation_id=None):
-        super(SampleSwitchAreaAgent, self).__init__(upstream_message_bus_def, downstream_message_bus_def,
+                 switch_area_dict: Dict = None, simulation_id: str = None):
+        super().__init__(upstream_message_bus_def, downstream_message_bus_def,
                                                     switch_area_dict, simulation_id)
 
-    def on_measurement(self, peer, sender, bus, topic, headers, message):
+    def on_measurement(self, headers: Dict, message):
+        _log.debug(f"measurement: {self.__class__.__name__}.{headers.get('destination')}")
         with open("switch_area.txt", "a") as fp:
             fp.write(json.dumps(message))
-        print(message)
+        #print(message)
 
 
 class SampleSecondaryAreaAgent(SecondaryAreaAgent):
 
     def __init__(self, upstream_message_bus_def: MessageBusDefinition, downstream_message_bus_def: MessageBusDefinition,
-                 secondary_area_dict=None, simulation_id=None):
-        super(SampleSecondaryAreaAgent, self).__init__(upstream_message_bus_def, downstream_message_bus_def,
+                 secondary_area_dict: Dict = None, simulation_id: str = None):
+        super().__init__(upstream_message_bus_def, downstream_message_bus_def,
                                                        secondary_area_dict, simulation_id)
 
-    def on_measurement(self, peer, sender, bus, topic, headers, message):
+        
+
+    def on_measurement(self, headers: Dict, message):
+        _log.debug(f"measurement: {self.__class__.__name__}.{headers.get('destination')}")
         with open("secondary.txt", "a") as fp:
-            if "_4c491539-dfc1-4fda-9841-3bf10348e2fa" in json.dumps(message):
-                print("Woot found it!")
-                sys.exit()
             fp.write(json.dumps(message))
-        print(message)
 
 
-def overwrite_parameters(area_id: str, feeder_id: str) -> MessageBusDefinition:
+def overwrite_parameters(feeder_id: str, area_id: str = '') -> MessageBusDefinition:
     bus_def = MessageBusDefinition.load("config_files_simulated/system-message-bus.yml")
-    bus_def.id = feeder_id + '_' + area_id
+    if not area_id:
+        bus_def.id = feeder_id
+    else:
+        bus_def.id = feeder_id + '.' + area_id
     address = os.environ.get('GRIDAPPSD_ADDRESS')
     port = os.environ.get('GRIDAPPSD_PORT')
     if not address or not port:
         raise ValueError("import auth_context or set environment up before this statement.")
 
     bus_def.conneciton_args['GRIDAPPSD_ADDRESS'] = f"tcp://{address}:{port}"
+    bus_def.conneciton_args['GRIDAPPSD_USER'] = os.environ.get('GRIDAPPSD_USER')
+    bus_def.conneciton_args['GRIDAPPSD_PASSWORD'] = os.environ.get('GRIDAPPSD_PASSWORD')
     return bus_def
 
 
@@ -90,7 +112,7 @@ def _main():
     feeder_id = feeder_path.read_text().strip()
     simulation_id = simulation_id_path.read_text().strip()
 
-    system_message_bus_def = overwrite_parameters("", feeder_id)
+    system_message_bus_def = overwrite_parameters("config_files_simulated/system-message-bus.yml", feeder_id)
 
     #TODO: add dictionary of other message bus definitions or have a functions call
     coordinating_agent = SampleCoordinatingAgent(feeder_id, system_message_bus_def)
@@ -104,29 +126,35 @@ def _main():
     #TODO: create access control for agents for different layers
     feeder_agent = SampleFeederAgent(system_message_bus_def, feeder_message_bus_def, feeder, simulation_id)
     coordinating_agent.spawn_distributed_agent(feeder_agent)
-
-        # create switch area distributed agents
+    
+    
+    # Get all the attributes of the equipments in the feder area from the model 
+    #TODO: Uncomment when feeder attributed query working in gridappsd
+    #print(feeder_agent.feeder_area.get_all_attributes(cim.PowerTransformer))
+    
+    # create switch area distributed agents
     switch_areas = context['data']['switch_areas']
-    print(switch_areas)
-    exit()
     for sw_index, switch_area in enumerate(switch_areas):
-        switch_area_message_bus_def = overwrite_parameters(f"{sw_index}", feeder_id)
-        print("Creating switch area agent " + str(switch_area))
+        switch_area_message_bus_def = overwrite_parameters(feeder_id, f"{sw_index}")
+        print("Creating switch area agent " + str(switch_area['message_bus_id']))
         switch_area_agent = SampleSwitchAreaAgent(feeder_message_bus_def,
                                                   switch_area_message_bus_def,
                                                   switch_area,
                                                   simulation_id)
-        coordinating_agent.spawn_distributed_agent(switch_area_agent)
+        coordinating_agent.spawn_distributed_agent(switch_area_agent)        
 
         # create secondary area distributed agents
         for sec_index, secondary_area in enumerate(switch_area['secondary_areas']):
-            secondary_area_message_bus_def = overwrite_parameters(f"{sw_index}.{sec_index}", feeder_id)
+            secondary_area_message_bus_def = overwrite_parameters(feeder_id, f"{sw_index}.{sec_index}")
+            print("Creating secondary area agent " + str(secondary_area['message_bus_id']))
             secondary_area_agent = SampleSecondaryAreaAgent(switch_area_message_bus_def,
                                                             secondary_area_message_bus_def,
                                                             secondary_area,
                                                             simulation_id)
-            if len(secondary_area_agent.addressable_equipments) > 1:
+            if len(secondary_area_agent.secondary_area.addressable_equipment) > 1:
                 coordinating_agent.spawn_distributed_agent(secondary_area_agent)
+                
+
     '''
     # Publish device data
     device = DeviceFieldInterface(
