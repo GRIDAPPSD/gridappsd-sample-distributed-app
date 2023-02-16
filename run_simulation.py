@@ -29,7 +29,7 @@ feeder_mrid = "_C1C3E687-6FFD-C753-582B-632A27E28507"  # 123 bus
 psc = PowerSystemConfig(Line_name=feeder_mrid)
 
 sim_conf = SimulationConfig(power_system_config = psc)
-# sim_config = sim_conf.__dict__
+sim_conf.simulation_config.duration = 4000
 sim_config = json.loads(json.dumps(sim_conf.asdict(), indent = 2))
 # print(sim_config)
 print(f"Simulation for feeder: {psc.Line_name}")

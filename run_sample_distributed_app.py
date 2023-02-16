@@ -42,13 +42,16 @@ class SampleFeederAgent(FeederAgent):
                  feeder_dict: Dict = None, simulation_id: str = None):
         super().__init__(upstream_message_bus_def, downstream_message_bus_def,
                                                 feeder_dict, simulation_id)
+        self._latch = False
 
         
     #TODO remove first four
     def on_measurement(self, headers: Dict, message) -> None:
-        _log.debug(f"measurement: {self.__class__.__name__}.{headers.get('destination')}")
-        with open("feeder.txt", "a") as fp:
-            fp.write(json.dumps(message))
+        if not self._latch:
+            _log.debug(f"measurement: {self.__class__.__name__}.{headers.get('destination')}")
+            with open("feeder.txt", "a") as fp:
+                fp.write(json.dumps(message))
+            self._latch = True
         #print(message)
 
 
@@ -58,12 +61,16 @@ class SampleSwitchAreaAgent(SwitchAreaAgent):
                  switch_area_dict: Dict = None, simulation_id: str = None):
         super().__init__(upstream_message_bus_def, downstream_message_bus_def,
                                                     switch_area_dict, simulation_id)
+        self._latch = False
 
     def on_measurement(self, headers: Dict, message):
-        _log.debug(f"measurement: {self.__class__.__name__}.{headers.get('destination')}")
-        with open("switch_area.txt", "a") as fp:
-            fp.write(json.dumps(message))
+        if not self._latch:
+            _log.debug(f"measurement: {self.__class__.__name__}.{headers.get('destination')}")
+            with open("switch_area.txt", "a") as fp:
+                fp.write(json.dumps(message))
+            self._latch = True
         #print(message)
+        
 
 
 class SampleSecondaryAreaAgent(SecondaryAreaAgent):
@@ -72,14 +79,16 @@ class SampleSecondaryAreaAgent(SecondaryAreaAgent):
                  secondary_area_dict: Dict = None, simulation_id: str = None):
         super().__init__(upstream_message_bus_def, downstream_message_bus_def,
                                                        secondary_area_dict, simulation_id)
+        self._latch = False
 
         
 
     def on_measurement(self, headers: Dict, message):
-        _log.debug(f"measurement: {self.__class__.__name__}.{headers.get('destination')}")
-        with open("secondary.txt", "a") as fp:
-            fp.write(json.dumps(message))
-
+        if not self._latch:
+            _log.debug(f"measurement: {self.__class__.__name__}.{headers.get('destination')}")
+            with open("secondary.txt", "a") as fp:
+                fp.write(json.dumps(message))
+            self._latch = True
 
 def overwrite_parameters(feeder_id: str, area_id: str = '') -> MessageBusDefinition:
     bus_def = MessageBusDefinition.load("config_files_simulated/system-message-bus.yml")
@@ -141,7 +150,12 @@ def _main():
                                                   switch_area_message_bus_def,
                                                   switch_area,
                                                   simulation_id)
+<<<<<<< Updated upstream
         coordinating_agent.spawn_distributed_agent(switch_area_agent)        
+=======
+        coordinating_agent.spawn_distributed_agent(switch_area_agent)
+        
+>>>>>>> Stashed changes
 
         # create secondary area distributed agents
         for sec_index, secondary_area in enumerate(switch_area['secondary_areas']):
@@ -153,7 +167,10 @@ def _main():
                                                             simulation_id)
             if len(secondary_area_agent.secondary_area.addressable_equipment) > 1:
                 coordinating_agent.spawn_distributed_agent(secondary_area_agent)
+<<<<<<< Updated upstream
                 
+=======
+>>>>>>> Stashed changes
 
     '''
     # Publish device data
