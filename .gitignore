@@ -105,3 +105,6 @@ ENV/
 
 # visual studio code
 .vscode/
+
+# outputs
+outputs/*
