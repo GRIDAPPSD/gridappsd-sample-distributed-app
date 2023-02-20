@@ -1,7 +1,7 @@
 import os
 
-gridappsd_user = os.environ.get("GRIDAPPSD_USER", "app_user")
-gridappsd_password = os.environ.get("GRIDAPPSD_PASSWORD", "1234App")
+gridappsd_user = os.environ.get("GRIDAPPSD_USER", "system")
+gridappsd_password = os.environ.get("GRIDAPPSD_PASSWORD", "manager")
 gridappsd_address = os.environ.get("GRIDAPPSD_ADDRESS", "gridappsd")
 gridappsd_port = os.environ.get("GRIDAPPSD_PORT", "61613")
 

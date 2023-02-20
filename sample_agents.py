@@ -32,7 +32,7 @@ class SampleFeederAgent(FeederAgent):
     def on_measurement(self, headers: Dict, message) -> None:
         if not self._latch:
             log.debug(f"measurement: {self.__class__.__name__}.{headers.get('destination')}")
-            with open("feeder.txt", "w") as fp:
+            with open("outputs/feeder.json", "w") as fp:
                 fp.write(json.dumps(message))
             self._latch = True
 
@@ -48,7 +48,7 @@ class SampleSwitchAreaAgent(SwitchAreaAgent):
     def on_measurement(self, headers: Dict, message):
         if not self._latch:
             log.debug(f"measurement: {self.__class__.__name__}.{headers.get('destination')}")
-            with open("switch_area.txt", "w") as fp:
+            with open("outputs/switch_area.json", "w") as fp:
                 fp.write(json.dumps(message))
             self._latch = True
         
@@ -67,26 +67,8 @@ class SampleSecondaryAreaAgent(SecondaryAreaAgent):
     def on_measurement(self, headers: Dict, message):
         if not self._latch:
             log.debug(f"measurement: {self.__class__.__name__}.{headers.get('destination')}")
-            with open("secondary.txt", "w") as fp:
+            with open("outputs/secondary.json", "w") as fp:
                 fp.write(json.dumps(message))
             self._latch = True
-
-def overwrite_parameters(path: str, feeder_id: str = '', area_id: str = '') -> MessageBusDefinition:
-    """_summary_
-    """
-    bus_def = MessageBusDefinition.load(path)
-    if feeder_id and area_id:
-        bus_def.id = feeder_id + '.' + area_id 
-    elif feeder_id and not area_id:
-        bus_def.id = feeder_id
-        
-    print(bus_def.id)
-    address = os.environ.get('GRIDAPPSD_ADDRESS')    
-    port = os.environ.get('GRIDAPPSD_PORT')
-    if not address or not port:
-        raise ValueError("import auth_context or set environment up before this statement.")
-
-    bus_def.conneciton_args['GRIDAPPSD_ADDRESS'] = f"tcp://{address}:{port}"
-    bus_def.conneciton_args['GRIDAPPSD_USER'] = os.environ.get('GRIDAPPSD_USER')
-    bus_def.conneciton_args['GRIDAPPSD_PASSWORD'] = os.environ.get('GRIDAPPSD_PASSWORD')
-    return bus_def
+            
+            

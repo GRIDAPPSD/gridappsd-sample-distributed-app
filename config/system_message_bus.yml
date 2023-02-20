@@ -5,4 +5,4 @@ connections:
   connection_args:
     GRIDAPPSD_ADDRESS: tcp://gridappsd:61613
     GRIDAPPSD_USER: system
-    GRIDAPPSD_PASSWORD: manage
+    GRIDAPPSD_PASSWORD: manager
