@@ -24,8 +24,8 @@ cim_profile = CIM_PROFILE.RC4_2021.value
 agents_mod.set_cim_profile(cim_profile)
 cim = agents_mod.cim
 
-GOSS_CONFIG = "pnnl.goss.gridappsd.cfg"
-SIM_CONFIG = "config/ieee13.json"
+GOSS_CONFIG = "config/pnnl.goss.gridappsd.cfg"
+SIM_CONFIG = "config/ieee123.json"
 BUS_CONFIG = "config/system_message_bus.yml"
 
 def overwrite_parameters(feeder_id: str, area_id: str = '') -> MessageBusDefinition:
@@ -47,15 +47,16 @@ def overwrite_parameters(feeder_id: str, area_id: str = '') -> MessageBusDefinit
     bus_def.conneciton_args['GRIDAPPSD_PASSWORD'] = os.environ.get('GRIDAPPSD_PASSWORD')
     return bus_def
 
-def save_switch_area(switch_area: dict, sw_idx: int) -> None:
+def save_area(context: dict) -> None:
     """_summary_
     """
-    with open(f"outputs/switch_areas-{sw_idx}.json", "w") as file:
-        file.write(json.dumps(switch_area))
+    with open(f"outputs/{context['message_bus_id']}.json", "w") as file:
+        file.write(json.dumps(context))
         
 def spawn_feeder_agent(context: dict, sim: Sim, coord_agent: SampleCoordinatingAgent) -> None:
     sys_message_bus = overwrite_parameters(sim.get_feeder_id())
     feeder_message_bus = overwrite_parameters(sim.get_feeder_id())
+    save_area(context)
     agent = SampleFeederAgent(sys_message_bus,
                               feeder_message_bus,
                               context,
@@ -65,6 +66,7 @@ def spawn_feeder_agent(context: dict, sim: Sim, coord_agent: SampleCoordinatingA
 def spawn_secondary_agents(context: dict, sw_idx: int, sec_idx: int, sim: Sim, coord_agent: SampleCoordinatingAgent) -> None:
         switch_message_bus = overwrite_parameters(sim.get_feeder_id(), f"{sw_idx}")
         secondary_area_message_bus_def = overwrite_parameters(sim.get_feeder_id(), f"{sw_idx}.{sec_idx}")
+        save_area(context)
         agent = SampleSecondaryAreaAgent(switch_message_bus,
                                          secondary_area_message_bus_def,
                                          context,
@@ -74,7 +76,7 @@ def spawn_secondary_agents(context: dict, sw_idx: int, sec_idx: int, sim: Sim, c
             
 def spawn_switch_area_agents(context: dict, idx: int, sim: Sim, coord_agent: SampleCoordinatingAgent) -> None:
     feeder_message_bus = overwrite_parameters(sim.get_feeder_id())
-    save_switch_area(context, idx)
+    save_area(context)
     switch_message_bus = overwrite_parameters(sim.get_feeder_id(), f"{idx}")
     agent = SampleSwitchAreaAgent(feeder_message_bus,
                                   switch_message_bus,
@@ -130,8 +132,6 @@ def main() -> None:
     assert gapps.connected
 
     sim = Sim(gapps, SIM_CONFIG)
-    
-    print(sim.getSwitches())
     
     sys_message_bus = overwrite_parameters(BUS_CONFIG)
 
