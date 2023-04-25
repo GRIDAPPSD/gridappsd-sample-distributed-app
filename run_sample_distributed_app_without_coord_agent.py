@@ -1,22 +1,23 @@
+import auth_context
 import importlib
+
 import json
 import logging
 import os
 import sys
 import time
-from pathlib import Path
 from typing import Dict
+
+from cimlab.data_profile import CIM_PROFILE
+
+from pathlib import Path
 
 import gridappsd.field_interface.agents.agents as agents_mod
 import gridappsd.topics as t
-from cimlab.data_profile import CIM_PROFILE
-from gridappsd.field_interface.agents import (CoordinatingAgent, FeederAgent,
-                                              SecondaryAreaAgent,
-                                              SwitchAreaAgent)
+from gridappsd.field_interface.agents import CoordinatingAgent, FeederAgent, SwitchAreaAgent, SecondaryAreaAgent
 from gridappsd.field_interface.context import LocalContext
 from gridappsd.field_interface.interfaces import MessageBusDefinition
 
-import auth_context
 import sample_queries as example
 
 cim_profile = CIM_PROFILE.RC4_2021.value
@@ -117,7 +118,7 @@ class SampleSecondaryAreaAgent(SecondaryAreaAgent):
 def _main():
 
     agent_config = {
-        "app_id": "sample_app",
+        "app_id": "sample_app_without_coord_agent",
         "description":
         "This is a GridAPPS-D sample distribution application agent"
     }
@@ -131,23 +132,16 @@ def _main():
 
     simulation_id = simulation_id_path.read_text().strip()
 
-    system_message_bus_def = MessageBusDefinition.load("config_files_simulated/system-message-bus.yml")
-
-    #TODO: add dictionary of other message bus definitions or have a functions call
-    coordinating_agent = SampleCoordinatingAgent(system_message_bus_def)
-
-    # Create feeder level distributed agent
-    feeder_message_bus_def = MessageBusDefinition.load("config_files_simulated/feeder-message-bus.yml")
+    system_message_bus_def = MessageBusDefinition.load(
+        "config_files_simulated/system-message-bus.yml")
+    feeder_message_bus_def = MessageBusDefinition.load(
+        "config_files_simulated/feeder-message-bus.yml")
 
     #TODO: create access control for agents for different layers
     feeder_agent = SampleFeederAgent(system_message_bus_def,
                                      feeder_message_bus_def, agent_config,
                                      None, simulation_id)
-    coordinating_agent.spawn_distributed_agent(feeder_agent)
-
-    # Get all the attributes of the equipments in the feder area from the model
-    #TODO: Uncomment when feeder attributed query working in gridappsd
-    #print(feeder_agent.feeder_area.get_all_attributes(cim.PowerTransformer))
+    feeder_agent.connect()
 
     # create switch area distributed agents
     switch_areas = feeder_agent.agent_area_dict['switch_areas']
@@ -160,7 +154,7 @@ def _main():
                                                   switch_area_message_bus_def,
                                                   agent_config, switch_area,
                                                   simulation_id)
-        coordinating_agent.spawn_distributed_agent(switch_area_agent)
+        switch_area_agent.spawn_distributed_agent(switch_area_agent)
 
         # Get all the attributes of the equipments in the switch area from the model
 
@@ -195,16 +189,17 @@ def _main():
 
         request_queue = t.field_agent_request_queue(
             switch_area_agent.downstream_message_bus.id, service_agent_id)
-        _log.debug(request_queue)
+        print(request_queue)
         response = switch_area_agent.downstream_message_bus.get_response(
             request_queue, {'test': 'test request'})
-        _log.info(f'Response from service agent: {response}')
+        print(f'Response from service agent: {response}')
 
         # create secondary area distributed agents
         for sec_index, secondary_area in enumerate(
                 switch_area['secondary_areas']):
             secondary_area_message_bus_def = MessageBusDefinition.load(
-                f"config_files_simulated/secondary_area_message_bus_{sw_index}_{sec_index}.yml")
+                f"config_files_simulated/secondary_area_message_bus_{sw_index}_{sec_index}.yml"
+            )
             print("Creating secondary area agent " +
                   str(secondary_area['message_bus_id']))
             secondary_area_agent = SampleSecondaryAreaAgent(
@@ -212,7 +207,7 @@ def _main():
                 agent_config, secondary_area, simulation_id)
             if len(secondary_area_agent.secondary_area.addressable_equipment
                    ) > 1:
-                coordinating_agent.spawn_distributed_agent(
+                secondary_area_agent.spawn_distributed_agent(
                     secondary_area_agent)
 
                 # Example 6 - Get inverter buses and phases
@@ -220,16 +215,6 @@ def _main():
 
                 # Example 7 - Get load buses and phases
                 example.get_load_buses(secondary_area_agent.secondary_area)
-    '''
-    # Publish device data
-    device = DeviceFieldInterface(
-        secondary_area_message_bus_def.id,
-        secondary_area_agent.downstream_message_bus,
-        publish_topic=f"fieldbus/{secondary_area_message_bus_def.id}",
-        control_topic=f"control/{secondary_area_message_bus_def.id}",
-    )
-    device.publish_field_bus()
-    '''
 
     while True:
         try:
