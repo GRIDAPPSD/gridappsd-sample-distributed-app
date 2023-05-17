@@ -9,7 +9,7 @@ from typing import Dict
 
 import gridappsd.field_interface.agents.agents as agents_mod
 import gridappsd.topics as t
-from cimlab.data_profile import CIM_PROFILE
+from cimgraph.data_profile import CIM_PROFILE
 from gridappsd.field_interface.agents import (CoordinatingAgent, FeederAgent,
                                               SecondaryAreaAgent,
                                               SwitchAreaAgent)

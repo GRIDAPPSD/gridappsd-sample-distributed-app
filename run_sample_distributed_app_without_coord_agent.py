@@ -1,23 +1,22 @@
-import auth_context
 import importlib
-
 import json
 import logging
 import os
 import sys
 import time
-from typing import Dict
-
-from cimlab.data_profile import CIM_PROFILE
-
 from pathlib import Path
+from typing import Dict
 
 import gridappsd.field_interface.agents.agents as agents_mod
 import gridappsd.topics as t
-from gridappsd.field_interface.agents import CoordinatingAgent, FeederAgent, SwitchAreaAgent, SecondaryAreaAgent
+from cimgraph.data_profile import CIM_PROFILE
+from gridappsd.field_interface.agents import (CoordinatingAgent, FeederAgent,
+                                              SecondaryAreaAgent,
+                                              SwitchAreaAgent)
 from gridappsd.field_interface.context import LocalContext
 from gridappsd.field_interface.interfaces import MessageBusDefinition
 
+import auth_context
 import sample_queries as example
 
 cim_profile = CIM_PROFILE.RC4_2021.value
