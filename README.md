@@ -39,7 +39,7 @@ python run_simulation.py
 Open a new terminal and run the context manager so other distributed agents can discover near by agents, devices and their location in the network.
 ```commandline
 # Command line 1 holds the simulation running
-python run_context_manager.py
+python run_context_manager_agent.py
 ```
 
 ### 4. Run Sample Distributed Service
