@@ -230,9 +230,7 @@ def _main():
                 secondary_area_message_bus_def,
                 agent_config,
                 simulation_id=simulation_id)
-            if len(secondary_area_agent.secondary_area.addressable_equipment
-                   ) > 1:
-                secondary_area_agent.connect()
+            secondary_area_agent.connect()
 
     while True:
         try:

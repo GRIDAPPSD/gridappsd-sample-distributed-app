@@ -92,6 +92,12 @@ class SampleSwitchAreaAgent(SwitchAreaAgent):
         with open("switch_area.txt", "a") as fp:
             fp.write(json.dumps(message))
         #print(message)
+        
+    def on_upstream_message(self, headers: Dict, message) -> None:
+        _log.info(f"Received message from upstream message bus: {message}")
+
+    def on_downstream_message(self, headers: Dict, message) -> None:
+        _log.info(f"Received message from downstream message bus: {message}")
 
 
 class SampleSecondaryAreaAgent(SecondaryAreaAgent):
@@ -113,6 +119,11 @@ class SampleSecondaryAreaAgent(SecondaryAreaAgent):
         with open("secondary.txt", "a") as fp:
             fp.write(json.dumps(message))
 
+    def on_upstream_message(self, headers: Dict, message) -> None:
+        _log.info(f"Received message from upstream message bus: {message}")
+
+    def on_downstream_message(self, headers: Dict, message) -> None:
+        _log.info(f"Received message from downstream message bus: {message}")
 
 def _main():
 
@@ -199,7 +210,34 @@ def _main():
         response = switch_area_agent.downstream_message_bus.get_response(
             request_queue, {'test': 'test request'})
         _log.info(f'Response from service agent: {response}')
-
+        
+        
+        message =  {
+                  "timestamp": 1648512552,
+                  "datatype": "test1",
+                  "any_common_key": "any_value",
+                  "message": [{
+                      "data_timestamp": 1668109752,
+                      "any_key1": 1, 
+                      "any_key2": "any_value2"
+                      },
+                    {
+                      "data_timestamp": 1648512642,
+                      "any_key1": 1, 
+                      "any_key2": "any_value2"
+                    }
+                  ],
+                  "tags":["data_timestamp","any_common_key"]
+                 }
+        
+        
+        #Publishing on feeder message bus. This is subscribed by the feeder agent and agents in all switch areas.
+        switch_area_agent.publish_upstream(message)
+        
+        #Publishing on switch message bus. This is subscribed by all secondary area agents under this switch area.
+        switch_area_agent.publish_downstream(message)
+        
+        
         # create secondary area distributed agents
         for sec_index, secondary_area in enumerate(
                 switch_area['secondary_areas']):
