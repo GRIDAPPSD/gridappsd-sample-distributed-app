@@ -35,7 +35,7 @@ _log = logging.getLogger(__name__)
 class SampleCoordinatingAgent(CoordinatingAgent):
 
     def __init__(self, system_message_bus_def, simulation_id=None):
-        super().__init__(system_message_bus_def, simulation_id)
+        super().__init__(None, system_message_bus_def, simulation_id)
 
 
 class SampleFeederAgent(FeederAgent):
