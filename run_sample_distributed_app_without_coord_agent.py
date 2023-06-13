@@ -154,7 +154,7 @@ def _main():
                                                   switch_area_message_bus_def,
                                                   agent_config, switch_area,
                                                   simulation_id)
-        switch_area_agent.spawn_distributed_agent(switch_area_agent)
+        switch_area_agent.connect()
 
         # Get all the attributes of the equipments in the switch area from the model
 
@@ -207,8 +207,7 @@ def _main():
                 agent_config, secondary_area, simulation_id)
             if len(secondary_area_agent.secondary_area.addressable_equipment
                    ) > 1:
-                secondary_area_agent.spawn_distributed_agent(
-                    secondary_area_agent)
+                secondary_area_agent.connect()
 
                 # Example 6 - Get inverter buses and phases
                 example.get_inverter_buses(secondary_area_agent.secondary_area)
