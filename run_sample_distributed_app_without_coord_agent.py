@@ -8,7 +8,7 @@ import sys
 import time
 from typing import Dict
 
-from cimlab.data_profile import CIM_PROFILE
+from cimgraph.data_profile import CIM_PROFILE
 
 from pathlib import Path
 
@@ -141,8 +141,7 @@ def _main():
     feeder_agent = SampleFeederAgent(system_message_bus_def,
                                      feeder_message_bus_def, agent_config,
                                      None, simulation_id)
-    feeder_agent.connect()
-
+    
     # create switch area distributed agents
     switch_areas = feeder_agent.agent_area_dict['switch_areas']
     for sw_index, switch_area in enumerate(switch_areas):
@@ -152,10 +151,9 @@ def _main():
               str(switch_area['message_bus_id']))
         switch_area_agent = SampleSwitchAreaAgent(feeder_message_bus_def,
                                                   switch_area_message_bus_def,
-                                                  agent_config, switch_area,
+                                                  agent_config, None,
                                                   simulation_id)
-        switch_area_agent.connect()
-
+        
         # Get all the attributes of the equipments in the switch area from the model
 
         # EXAMPLE 1 - Get phase, bus info about ACLineSegments
@@ -200,15 +198,16 @@ def _main():
             secondary_area_message_bus_def = MessageBusDefinition.load(
                 f"config_files_simulated/secondary_area_message_bus_{sw_index}_{sec_index}.yml"
             )
-            print("Creating secondary area agent " +
+            print("Creating secondary area agent " + 
                   str(secondary_area['message_bus_id']))
             secondary_area_agent = SampleSecondaryAreaAgent(
                 switch_area_message_bus_def, secondary_area_message_bus_def,
-                agent_config, secondary_area, simulation_id)
-            if len(secondary_area_agent.secondary_area.addressable_equipment
-                   ) > 1:
-                secondary_area_agent.connect()
-
+                agent_config, None, simulation_id)
+            
+            if len(secondary_area_agent.secondary_area.addressable_equipment) == 0:
+                _log.info(f"No addressable equipment in the area {secondary_area_agent.downstream_message_bus.id}. Disconnecting the agent.")
+                secondary_area_agent.disconnect()
+            else:
                 # Example 6 - Get inverter buses and phases
                 example.get_inverter_buses(secondary_area_agent.secondary_area)
 
