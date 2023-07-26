@@ -90,7 +90,7 @@ class SampleSwitchAreaAgent(SwitchAreaAgent):
         _log.debug(
             f"measurement: {self.__class__.__name__}.{headers.get('destination')}"
         )
-        with open("switch_area.txt", "a") as fp:
+        with open(f"{self.switch_area.area_id}_measurements.txt", "a") as fp:
             fp.write(json.dumps(message))
         #print(message)
 
@@ -111,11 +111,13 @@ class SampleSecondaryAreaAgent(SecondaryAreaAgent):
         _log.debug(
             f"measurement: {self.__class__.__name__}.{headers.get('destination')}"
         )
-        with open("secondary.txt", "a") as fp:
+        with open(f"{self.secondary_area.area_id}_measurements.txt", "a") as fp:
             fp.write(json.dumps(message))
 
 
 def _main():
+
+    config_folder = 'config/ieee13nodeckt'
 
     agent_config = {
         "app_id": "sample_app_without_coord_agent",
@@ -133,9 +135,9 @@ def _main():
     simulation_id = simulation_id_path.read_text().strip()
 
     system_message_bus_def = MessageBusDefinition.load(
-        "config_files_simulated/system-message-bus.yml")
+        f"{config_folder}/system-message-bus.yml")
     feeder_message_bus_def = MessageBusDefinition.load(
-        "config_files_simulated/feeder-message-bus.yml")
+        f"{config_folder}/feeder-message-bus.yml")
 
     #TODO: create access control for agents for different layers
     feeder_agent = SampleFeederAgent(system_message_bus_def,
@@ -146,7 +148,7 @@ def _main():
     switch_areas = feeder_agent.agent_area_dict['switch_areas']
     for sw_index, switch_area in enumerate(switch_areas):
         switch_area_message_bus_def = MessageBusDefinition.load(
-            f"config_files_simulated/switch_area_message_bus_{sw_index}.yml")
+            f"{config_folder}/switch_area_message_bus_{sw_index}.yml")
         print("Creating switch area agent " +
               str(switch_area['message_bus_id']))
         switch_area_agent = SampleSwitchAreaAgent(feeder_message_bus_def,
@@ -196,7 +198,7 @@ def _main():
         for sec_index, secondary_area in enumerate(
                 switch_area['secondary_areas']):
             secondary_area_message_bus_def = MessageBusDefinition.load(
-                f"config_files_simulated/secondary_area_message_bus_{sw_index}_{sec_index}.yml"
+                f"{config_folder}/secondary_area_message_bus_{sw_index}_{sec_index}.yml"
             )
             print("Creating secondary area agent " + 
                   str(secondary_area['message_bus_id']))

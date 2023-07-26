@@ -185,6 +185,8 @@ def _main():
     opts = parser.parse_args()
     simulation_id = opts.simulation_id
 
+    config_folder = 'config/ieee13nodeckt'
+
     agent_config = {
         "app_id":
         "context_manager",
@@ -193,9 +195,9 @@ def _main():
     }
 
     system_message_bus_def = MessageBusDefinition.load(
-        "config_files_simulated/system-message-bus.yml")
+        f"{config_folder}/system-message-bus.yml")
     feeder_message_bus_def = MessageBusDefinition.load(
-        "config_files_simulated/feeder-message-bus.yml")
+        f"{config_folder}/feeder-message-bus.yml")
 
     #TODO: create access control for agents for different layers
     feeder_agent = FeederAreaContextManager(system_message_bus_def,
@@ -206,7 +208,7 @@ def _main():
     for sw_index, switch_area in enumerate(
             feeder_agent.agent_area_dict['switch_areas']):
         switch_area_message_bus_def = MessageBusDefinition.load(
-            f"config_files_simulated/switch_area_message_bus_{sw_index}.yml")
+            f"{config_folder}/switch_area_message_bus_{sw_index}.yml")
         print("Creating switch area agent " +
               str(switch_area['message_bus_id']))
         switch_area_agent = SwitchAreaContextManager(
@@ -219,7 +221,7 @@ def _main():
         for sec_index, secondary_area in enumerate(
                 switch_area['secondary_areas']):
             secondary_area_message_bus_def = MessageBusDefinition.load(
-                f"config_files_simulated/secondary_area_message_bus_{sw_index}_{sec_index}.yml"
+                f"{config_folder}/secondary_area_message_bus_{sw_index}_{sec_index}.yml"
             )
             print("Creating secondary area agent " +
                   str(secondary_area['message_bus_id']))

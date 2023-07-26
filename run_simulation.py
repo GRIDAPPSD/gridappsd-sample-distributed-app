@@ -14,7 +14,7 @@ os.environ['GRIDAPPSD_PASSWORD'] = '1234App'
 os.environ['GRIDAPPSD_ADDRESS'] = 'localhost'
 os.environ['GRIDAPPSD_PORT'] = '61613'
 
-# sim_config = json.load(Path("config_files_simulated/simulation-config.json").open())
+# sim_config = json.load(Path("config/simulation-config.json").open())
 # sim_feeder = sim_config['power_system_config']['Line_name']
 
 
