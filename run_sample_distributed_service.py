@@ -189,8 +189,7 @@ def _main():
     feeder_agent = SampleFeederAgent(system_message_bus_def,
                                      feeder_message_bus_def, agent_config,
                                      feeder, simulation_id)
-    coordinating_agent.spawn_distributed_agent(feeder_agent)
-
+    
     # create switch area distributed agents
     switch_areas = context['data']['switch_areas']
     for sw_index, switch_area in enumerate(switch_areas):
@@ -203,8 +202,7 @@ def _main():
                                                   switch_area_message_bus_def,
                                                   agent_config, switch_area,
                                                   simulation_id)
-        coordinating_agent.spawn_distributed_agent(switch_area_agent)
-
+        
         # create secondary area distributed agents
         for sec_index, secondary_area in enumerate(
                 switch_area['secondary_areas']):
@@ -216,10 +214,9 @@ def _main():
             secondary_area_agent = SampleSecondaryAreaAgent(
                 switch_area_message_bus_def, secondary_area_message_bus_def,
                 agent_config, secondary_area, simulation_id)
-            if len(secondary_area_agent.secondary_area.addressable_equipment
-                   ) > 1:
-                coordinating_agent.spawn_distributed_agent(
-                    secondary_area_agent)
+            if len(secondary_area_agent.secondary_area.addressable_equipment) == 0:
+                _log.info(f"No addressable equipment in the area {secondary_area_agent.downstream_message_bus.id}. Disconnecting the agent.")
+                secondary_area_agent.disconnect()
     '''
     # Publish device data
     device = DeviceFieldInterface(

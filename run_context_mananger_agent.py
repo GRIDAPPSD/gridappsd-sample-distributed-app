@@ -202,8 +202,7 @@ def _main():
                                             feeder_message_bus_def,
                                             agent_config,
                                             simulation_id=simulation_id)
-    feeder_agent.connect()
-
+    
     for sw_index, switch_area in enumerate(
             feeder_agent.agent_area_dict['switch_areas']):
         switch_area_message_bus_def = MessageBusDefinition.load(
@@ -215,8 +214,7 @@ def _main():
             switch_area_message_bus_def,
             agent_config,
             simulation_id=simulation_id)
-        switch_area_agent.connect()
-
+    
         # create secondary area distributed agents
         for sec_index, secondary_area in enumerate(
                 switch_area['secondary_areas']):
@@ -230,7 +228,6 @@ def _main():
                 secondary_area_message_bus_def,
                 agent_config,
                 simulation_id=simulation_id)
-            secondary_area_agent.connect()
 
     while True:
         try:

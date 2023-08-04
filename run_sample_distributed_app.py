@@ -9,7 +9,7 @@ from typing import Dict
 
 import gridappsd.field_interface.agents.agents as agents_mod
 import gridappsd.topics as t
-from cimlab.data_profile import CIM_PROFILE
+from cimgraph.data_profile import CIM_PROFILE
 from gridappsd.field_interface.agents import (CoordinatingAgent, FeederAgent,
                                               SecondaryAreaAgent,
                                               SwitchAreaAgent)
@@ -35,7 +35,7 @@ _log = logging.getLogger(__name__)
 class SampleCoordinatingAgent(CoordinatingAgent):
 
     def __init__(self, system_message_bus_def, simulation_id=None):
-        super().__init__(system_message_bus_def, simulation_id)
+        super().__init__(None, system_message_bus_def, simulation_id)
 
 
 class SampleFeederAgent(FeederAgent):
@@ -154,8 +154,7 @@ def _main():
     feeder_agent = SampleFeederAgent(system_message_bus_def,
                                      feeder_message_bus_def, agent_config,
                                      None, simulation_id)
-    coordinating_agent.spawn_distributed_agent(feeder_agent)
-
+    
     # Get all the attributes of the equipments in the feder area from the model
     #TODO: Uncomment when feeder attributed query working in gridappsd
     #print(feeder_agent.feeder_area.get_all_attributes(cim.PowerTransformer))
@@ -171,8 +170,7 @@ def _main():
                                                   switch_area_message_bus_def,
                                                   agent_config, switch_area,
                                                   simulation_id)
-        coordinating_agent.spawn_distributed_agent(switch_area_agent)
-
+        
         # Get all the attributes of the equipments in the switch area from the model
 
         # EXAMPLE 1 - Get phase, bus info about ACLineSegments
@@ -248,11 +246,10 @@ def _main():
             secondary_area_agent = SampleSecondaryAreaAgent(
                 switch_area_message_bus_def, secondary_area_message_bus_def,
                 agent_config, secondary_area, simulation_id)
-            if len(secondary_area_agent.secondary_area.addressable_equipment
-                   ) > 1:
-                coordinating_agent.spawn_distributed_agent(
-                    secondary_area_agent)
-
+            if len(secondary_area_agent.secondary_area.addressable_equipment) == 0:
+                _log.info(f"No addressable equipment in the area {secondary_area_agent.downstream_message_bus.id}. Disconnecting the agent.")
+                secondary_area_agent.disconnect()
+            else:
                 # Example 6 - Get inverter buses and phases
                 example.get_inverter_buses(secondary_area_agent.secondary_area)
 
