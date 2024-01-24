@@ -10,10 +10,8 @@ This repository contains examples of distributed applications and services devel
    It is an example of a distributed application that creates distributed agents at Feeder, Switch areas and Secondary areas in a grid network model.
 
 3. [Sample Distributed Service](https://github.com/GRIDAPPSD/gridappsd-sample-distributed-app/blob/after_test/run_sample_distributed_service.py):
-   It is an example of a distributed service that receives request from near by distributed agents and respond back with sample data.
+   It is an example of a distributed service that receives request from near by distributed agents and respond with sample data.
 
-4. [Context Manager](https://github.com/GRIDAPPSD/gridappsd-sample-distributed-app/blob/after_test/run_context_mananger_agent.py): Context Manager
-   is a distrbuted service that provides contextual information to near by distributed agents such as local area network information, near by agents and devices etc.
 
 ## Configuration
 
@@ -47,16 +45,7 @@ python run_simulation.py
 
 ![Run Simulation Output](images/run-simulation-output.png)
 
-### 3. Run Context Manager
-
-Open a new terminal and run the context manager so other distributed agents can discover near by agents, devices and their location in the network.
-
-```commandline
-# Command line 1 holds the simulation running
-python run_context_manager_agent.py
-```
-
-### 4. Run Sample Distributed Service
+### 3. Run Sample Distributed Service
 
 Open a new terminal and run the sample distributed service so sample app can request data from the service.
 
