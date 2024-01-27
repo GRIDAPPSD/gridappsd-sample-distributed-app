@@ -44,8 +44,8 @@ network model from gridappsd with 8000 seconds of real time simulation.  You can
 
 ### 2. Provide Authentication Details
 
-[!IMPORTANT]
-The auth_context.py is configured to run from inside the gridapspd container.  If running outside please change `GRIDAPPSD_ADDRESS` to <localhost> or <machine name>.
+> [!IMPORTANT]
+> The auth_context.py is configured to run from inside the gridapspd container.  If running outside please change `GRIDAPPSD_ADDRESS` to <localhost> or <machine name>.
 
 Modify [auth_context.py](https://github.com/GRIDAPPSD/gridappsd-sample-distributed-app/blob/after_test/auth_context.py) with the correct values for the different environmental variables.  These will be used
 to overwrite the values in the different yaml configuration files for connecting to gridappsd as field bus.
