@@ -15,13 +15,14 @@ from gridappsd.field_interface.agents import (CoordinatingAgent, FeederAgent,
                                               SwitchAreaAgent)
 from gridappsd.field_interface.context import LocalContext
 from gridappsd.field_interface.interfaces import MessageBusDefinition
+from gridappsd import DifferenceBuilder
 
 import auth_context
 import sample_queries as example
 
 cim_profile = CIM_PROFILE.RC4_2021.value
 
-agents_mod.set_cim_profile(cim_profile)
+agents_mod.set_cim_profile(cim_profile=cim_profile, iec61970_301=7)
 
 cim = agents_mod.cim
 
@@ -202,13 +203,14 @@ def _main():
             if agent_details['app_id'] == 'local_service':
                 service_agent_id = agent_id
 
-        request_queue = t.field_agent_request_queue(
-            switch_area_agent.downstream_message_bus.id, service_agent_id)
-        _log.debug(request_queue)
-        response = switch_area_agent.downstream_message_bus.get_response(
-            request_queue, {'test': 'test request'})
-        _log.info(f'Response from service agent: {response}')
-        
+        if service_agent_id is not None:
+            request_queue = t.field_agent_request_queue(
+                switch_area_agent.downstream_message_bus.id, service_agent_id)
+            _log.debug(request_queue)
+            response = switch_area_agent.downstream_message_bus.get_response(
+                request_queue, {'test': 'test request'})
+            _log.info(f'Response from service agent: {response}')
+            
         
         message =  {
                   "timestamp": 1648512552,
@@ -235,7 +237,11 @@ def _main():
         #Publishing on switch message bus. This is subscribed by all secondary area agents under this switch area.
         switch_area_agent.publish_downstream(message)
         
-        
+        difference_builder = DifferenceBuilder(simulation_id)
+        difference_builder.add_difference('_A055D57E-1631-4565-A7AF-7F2A2E48CAAC', 'PowerElectronicsConnection.p', 1000.0, 10.0)
+        switch_area_agent.send_control_command(difference_builder)
+
+
         # create secondary area distributed agents
         for sec_index, secondary_area in enumerate(
                 switch_area['secondary_areas']):
