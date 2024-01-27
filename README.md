@@ -12,6 +12,25 @@ This repository contains examples of distributed applications and services devel
 3. [Sample Distributed Service](https://github.com/GRIDAPPSD/gridappsd-sample-distributed-app/blob/after_test/run_sample_distributed_service.py):
    It is an example of a distributed service that receives request from near by distributed agents and respond with sample data.
 
+## Requirements 
+
+- Python3.10
+- Python3.10-venv if using virtual environments.
+
+## Setup
+
+Generally we use a new virtual environment for the sample applications.  
+
+```bash
+# Creates virtual environment
+python3 -m venv myvenv
+
+# Activates the virtual environment
+source myvenv/bin/activate
+
+# Install requirements
+pip install -r requirements.txt
+```
 
 ## Configuration
 
