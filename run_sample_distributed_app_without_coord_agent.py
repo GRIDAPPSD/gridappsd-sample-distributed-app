@@ -22,7 +22,7 @@ import sample_queries as example
 
 cim_profile = CIM_PROFILE.RC4_2021.value
 
-agents_mod.set_cim_profile(cim_profile)
+agents_mod.set_cim_profile(cim_profile=cim_profile, iec61970_301=7)
 
 cim = agents_mod.cim
 
