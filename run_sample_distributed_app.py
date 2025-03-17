@@ -167,7 +167,7 @@ def _main():
         switch_area_message_bus_def = MessageBusDefinition.load(
             f"config_files_simulated/switch_area_message_bus_{switch_area['@id']}.yml")
         print("Creating switch area agent " +
-              str(switch_area['message_bus_id']))
+              str(switch_area['@id']))
         switch_area_agent = SampleSwitchAreaAgent(feeder_message_bus_def,
                                                   switch_area_message_bus_def,
                                                   agent_config, switch_area,
@@ -248,7 +248,7 @@ def _main():
             secondary_area_message_bus_def = MessageBusDefinition.load(
                 f"config_files_simulated/secondary_area_message_bus_{secondary_area['@id']}.yml")
             print("Creating secondary area agent " +
-                  str(secondary_area['message_bus_id']))
+                  str(secondary_area['@id']))
             secondary_area_agent = SampleSecondaryAreaAgent(
                 switch_area_message_bus_def, secondary_area_message_bus_def,
                 agent_config, secondary_area, simulation_id)
