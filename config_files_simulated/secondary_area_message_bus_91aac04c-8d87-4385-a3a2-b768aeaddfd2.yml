@@ -1,7 +1,7 @@
 connections:
-  id: _49AD8E07-3BF9-A4E2-CB8F-C3722F837B62.0
+  id: 91aac04c-8d87-4385-a3a2-b768aeaddfd2
   is_ot_bus: true
-  connection_type: CONNECTION_TYPE_GRIDAPPSD
+  connection_type: gridappsd_field_bus.field_interface.gridappsd_field_bus.GridAPPSDMessageBus
   connection_args:
     GRIDAPPSD_ADDRESS: tcp://gridappsd:61613
     GRIDAPPSD_USER: system

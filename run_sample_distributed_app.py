@@ -162,10 +162,10 @@ def _main():
     #print(feeder_agent.feeder_area.get_all_attributes(cim.PowerTransformer))
 
     # create switch area distributed agents
-    switch_areas = feeder_agent.agent_area_dict['switch_areas']
-    for sw_index, switch_area in enumerate(switch_areas):
+    switch_areas = feeder_agent.agent_area_dict['SwitchAreas']
+    for switch_area in switch_areas:
         switch_area_message_bus_def = MessageBusDefinition.load(
-            f"config_files_simulated/switch_area_message_bus_{sw_index}.yml")
+            f"config_files_simulated/switch_area_message_bus_{switch_area['@id']}.yml")
         print("Creating switch area agent " +
               str(switch_area['message_bus_id']))
         switch_area_agent = SampleSwitchAreaAgent(feeder_message_bus_def,
@@ -239,21 +239,20 @@ def _main():
         switch_area_agent.publish_downstream(message)
         
         difference_builder = DifferenceBuilder(simulation_id)
-        difference_builder.add_difference('_A055D57E-1631-4565-A7AF-7F2A2E48CAAC', 'PowerElectronicsConnection.p', 1000.0, 10.0)
+        difference_builder.add_difference('A055D57E-1631-4565-A7AF-7F2A2E48CAAC', 'PowerElectronicsConnection.p', 1000.0, 10.0)
         switch_area_agent.send_control_command(difference_builder)
 
 
         # create secondary area distributed agents
-        for sec_index, secondary_area in enumerate(
-                switch_area['secondary_areas']):
+        for secondary_area in switch_area['SecondaryAreas']:
             secondary_area_message_bus_def = MessageBusDefinition.load(
-                f"config_files_simulated/secondary_area_message_bus_{sw_index}_{sec_index}.yml")
+                f"config_files_simulated/secondary_area_message_bus_{secondary_area['@id']}.yml")
             print("Creating secondary area agent " +
                   str(secondary_area['message_bus_id']))
             secondary_area_agent = SampleSecondaryAreaAgent(
                 switch_area_message_bus_def, secondary_area_message_bus_def,
                 agent_config, secondary_area, simulation_id)
-            if len(secondary_area_agent.secondary_area.addressable_equipment) == 0:
+            if len(secondary_area_agent.agent_area_dict["AddressableEquipment"]) == 0:
                 _log.info(f"No addressable equipment in the area {secondary_area_agent.downstream_message_bus.id}. Disconnecting the agent.")
                 secondary_area_agent.disconnect()
             else:
