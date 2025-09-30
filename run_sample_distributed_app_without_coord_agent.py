@@ -23,6 +23,7 @@ cim_profile = CIM_PROFILE.CIMHUB_2023.value
 
 agents_mod.set_cim_profile(cim_profile=cim_profile, iec61970_301=8)
 
+
 cim = agents_mod.cim
 
 logging.basicConfig(level=logging.DEBUG)
