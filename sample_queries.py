@@ -1,8 +1,10 @@
-import gridappsd.field_interface.agents.agents as agents_mod
+import gridappsd_field_bus.field_interface.agents.agents as agents_mod
 from cimgraph.data_profile import CIM_PROFILE
 
-cim_profile = CIM_PROFILE.RC4_2021.value
-agents_mod.set_cim_profile(cim_profile, 7)
+
+cim_profile = CIM_PROFILE.CIMHUB_2023.value
+agents_mod.set_cim_profile(cim_profile, 8)
+
 cim = agents_mod.cim
 
 
