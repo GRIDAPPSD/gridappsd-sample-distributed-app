@@ -3,6 +3,7 @@ from cimgraph.data_profile import CIM_PROFILE
 
 cim_profile = CIM_PROFILE.CIMHUB_2023.value
 agents_mod.set_cim_profile(cim_profile, 8)
+
 cim = agents_mod.cim
 
 
