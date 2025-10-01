@@ -18,7 +18,6 @@ from gridappsd_field_bus.field_interface.agents import (CoordinatingAgent,
 from gridappsd_field_bus.field_interface.context import LocalContext
 from gridappsd_field_bus.field_interface.interfaces import MessageBusDefinition
 
-
 import auth_context
 import sample_queries as example
 
