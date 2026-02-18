@@ -25,6 +25,7 @@ cim_profile = CIM_PROFILE.CIMHUB_2023.value
 
 agents_mod.set_cim_profile(cim_profile=cim_profile, iec61970_301=8)
 
+
 cim = agents_mod.cim
 
 logging.basicConfig(level=logging.DEBUG)
@@ -239,7 +240,9 @@ def _main():
         switch_area_agent.publish_downstream(message)
         
         difference_builder = DifferenceBuilder(simulation_id)
+
         difference_builder.add_difference('A055D57E-1631-4565-A7AF-7F2A2E48CAAC', 'PowerElectronicsConnection.p', 1000.0, 10.0)
+
         switch_area_agent.send_control_command(difference_builder)
 
 
